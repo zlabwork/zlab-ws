@@ -38,3 +38,6 @@ go.sum
 
 ### Windows ###
 Thumbs.db
+
+### Project ###
+configs/app.yaml
