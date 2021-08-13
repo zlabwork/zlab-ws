@@ -10,4 +10,6 @@ type Msg struct {
 
 type MsgService interface {
     Msg(id int64) (*Msg, error)
+    CreateMsg(msg *Msg) error
+    DeleteMsg(id int64) error
 }

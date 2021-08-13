@@ -3,7 +3,7 @@ package zlabws
 var Cfg = App{}
 
 type App struct {
-    Database struct {
+    Db struct {
         Mysql struct {
             Host string
             Port string
