@@ -9,6 +9,7 @@ type App struct {
             Port string
             User string
             Pass string
+            Db   string
         }
         Redis struct {
             Host string
