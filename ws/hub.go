@@ -49,7 +49,7 @@ func (h *Hub) run() {
 		case message := <-h.broadcast:
             // TODO :: 消息临时存储, 后续要修改逻辑
             msgSrv := mysql.NewMsgService()
-            msgSrv.CreateMsg(&zlabws.Msg{Id: uuid.New().String(), Data: message, Ctime: time.Now().Unix()})
+            msgSrv.CreateMsg(&zlabws.Msg{Id: uuid.New().String(), Data: message[2:], Ctime: time.Now().Unix()})
 
 			for client := range h.clients {
 				select {

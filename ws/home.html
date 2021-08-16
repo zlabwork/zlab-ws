@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Chat Example</title>
+<title>zlab websocket chat</title>
 <script type="text/javascript">
 window.onload = function () {
     var conn;
@@ -23,20 +23,40 @@ window.onload = function () {
         if (!msg.value) {
             return false;
         }
-        conn.send(msg.value);
+
+        // string 转 bytes
+        let txtArr = new TextEncoder().encode(msg.value);
+        let bs = new Uint8Array(txtArr.byteLength + 2)
+        bs[0] = 0xFF // TODO :: 消息类型
+        bs[1] = 0x00
+        for (var i = 0; i < txtArr.byteLength; i++) {
+            bs[i + 2] = txtArr[i];
+        }
+
+        conn.send(bs);
         msg.value = "";
         return false;
     };
 
     if (window["WebSocket"]) {
         conn = new WebSocket("ws://" + document.location.host + "/ws");
+        conn.binaryType = "arraybuffer"
         conn.onclose = function (evt) {
             var item = document.createElement("div");
             item.innerHTML = "<b>Connection closed.</b>";
             appendLog(item);
         };
-        conn.onmessage = function (evt) {
-            var messages = evt.data.split('\n');
+        conn.onmessage = function (event) {
+            var text = ""
+            if (typeof event.data === "string") {
+                text = event.data
+            }
+            if (event.data instanceof ArrayBuffer) {
+                var bs = new Uint8Array(event.data)
+                var data = bs.subarray(2, bs.byteLength)
+                text = new TextDecoder().decode(data);
+            }
+            var messages = text.split('\n');
             for (var i = 0; i < messages.length; i++) {
                 var item = document.createElement("div");
                 item.innerText = messages[i];
