@@ -1,6 +1,6 @@
 package zlabws
 
-type Msg struct {
+type Message struct {
     Id    string
     Type  uint8
     From  int64
@@ -9,8 +9,8 @@ type Msg struct {
     Ctime int64
 }
 
-type MsgService interface {
-    Msg(id string) (*Msg, error)
-    CreateMsg(msg *Msg) error
+type MessageService interface {
+    Message(id string) (*Message, error)
+    CreateMsg(msg *Message) error
     DeleteMsg(id string) error
 }

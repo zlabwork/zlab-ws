@@ -12,10 +12,10 @@ func getHandle() (*handle, error) {
     return ConnectMySQL(dsn)
 }
 
-func NewMsgService() *MsgService {
+func NewMessageService() *MessageService {
     h, err := getHandle()
     if err != nil {
         log.Println(err)
     }
-    return &MsgService{h: h}
+    return &MessageService{h: h}
 }
