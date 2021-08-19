@@ -8,7 +8,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
-    "os"
+	"os"
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
@@ -27,11 +27,11 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func Run() {
-    if len(os.Getenv("WS_HOST")) > 0 {
-        *addr = os.Getenv("WS_HOST")
-    }
-    flag.Parse()
-    hub := newHub()
+	if len(os.Getenv("WS_HOST")) > 0 {
+		*addr = os.Getenv("WS_HOST")
+	}
+	flag.Parse()
+	hub := newHub()
 	go hub.run()
 	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {

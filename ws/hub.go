@@ -5,10 +5,10 @@
 package ws
 
 import (
-    "github.com/google/uuid"
-    "time"
-    "zlabws"
-    "zlabws/srv/db/mysql"
+	"github.com/google/uuid"
+	"time"
+	"zlabws"
+	"zlabws/srv/db/mysql"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -47,9 +47,9 @@ func (h *Hub) run() {
 				close(client.send)
 			}
 		case message := <-h.broadcast:
-            // TODO :: 消息临时存储, 后续要修改逻辑
-            msgSrv := mysql.NewMessageService()
-            msgSrv.CreateMsg(&zlabws.Message{Id: uuid.New().String(), Data: message[2:], Ctime: time.Now().Unix()})
+			// TODO :: 消息临时存储, 后续要修改逻辑
+			msgSrv := mysql.NewMessageService()
+			msgSrv.CreateMsg(&zlabws.Message{Id: uuid.New().String(), Data: message[2:], Ctime: time.Now().Unix()})
 
 			for client := range h.clients {
 				select {
