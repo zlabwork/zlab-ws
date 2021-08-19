@@ -6,9 +6,14 @@ package ws
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
+	"zlabws"
+	"zlabws/srv/db/redis"
 
 	"github.com/gorilla/websocket"
 )
@@ -46,6 +51,12 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
+
+	// user id
+	id int64
+
+	// secret key
+	key []byte
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -69,8 +80,21 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.broadcast <- message
+
+		if message[:1][0] == zlabws.AuthType {
+			var msg zlabws.AuthMsg
+			if err := json.Unmarshal(message[2:], &msg); err != nil {
+				break
+			}
+			if !c.auth(&msg) {
+				break
+			}
+			c.hub.register <- c
+
+		} else {
+			message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+			c.hub.broadcast <- message
+		}
 	}
 }
 
@@ -120,6 +144,26 @@ func (c *Client) writePump() {
 	}
 }
 
+// check authorization
+func (c *Client) auth(msg *zlabws.AuthMsg) bool {
+	cache, _ := redis.NewRedisService()
+	defer cache.Conn.Close()
+	token := cache.Conn.HGetAll("token:" + strconv.FormatInt(msg.From, 10))
+	if token.Val()["token"] != msg.Token {
+		return false
+	}
+
+	// user id
+	c.id = msg.From
+
+	// secret key
+	h := md5.New()
+	h.Write([]byte(token.Val()["key"]))
+	c.key = h.Sum(nil)
+
+	return true
+}
+
 // serveWs handles websocket requests from the peer.
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -128,7 +172,6 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
-	client.hub.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
