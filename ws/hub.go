@@ -5,7 +5,9 @@
 package ws
 
 import (
+	"encoding/json"
 	"github.com/google/uuid"
+	"log"
 	"time"
 	"zlabws"
 	"zlabws/srv/db/mysql"
@@ -15,7 +17,7 @@ import (
 // clients.
 type Hub struct {
 	// Registered clients.
-	clients map[*int64]*Client
+	clients map[int64]*Client
 
 	// Inbound messages from the clients.
 	broadcast chan []byte
@@ -32,7 +34,7 @@ func newHub() *Hub {
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		clients:    make(map[*int64]*Client),
+		clients:    make(map[int64]*Client),
 	}
 }
 
@@ -40,10 +42,10 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
-			h.clients[&client.id] = client
+			h.clients[client.id] = client
 		case client := <-h.unregister:
-			if _, ok := h.clients[&client.id]; ok {
-				delete(h.clients, &client.id)
+			if _, ok := h.clients[client.id]; ok {
+				delete(h.clients, client.id)
 				close(client.send)
 			}
 		case message := <-h.broadcast:
@@ -51,14 +53,29 @@ func (h *Hub) run() {
 			msgSrv := mysql.NewMessageService()
 			msgSrv.CreateMsg(&zlabws.Message{Id: uuid.New().String(), Data: message[2:], Ctime: time.Now().Unix()})
 
-			for _, client := range h.clients {
-				select {
-				case client.send <- message:
-				default:
-					close(client.send)
-					delete(h.clients, &client.id)
-				}
+			// send to user
+			type who struct {
+				From int64
+				To   int64
 			}
+			var w who
+			if err := json.Unmarshal(message[2:], &w); err != nil {
+				log.Println(err.Error())
+				continue
+			}
+			cli, ok := h.clients[w.To]
+			if !ok {
+				// TODO :: 存储到数据库
+				log.Println("user is not connected")
+				continue
+			}
+			select {
+			case cli.send <- message:
+			default:
+				close(cli.send)
+				delete(h.clients, cli.id)
+			}
+			// TODO :: send to group or channel
 		}
 	}
 }
