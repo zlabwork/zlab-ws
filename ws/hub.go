@@ -15,7 +15,7 @@ import (
 // clients.
 type Hub struct {
 	// Registered clients.
-	clients map[*Client]bool
+	clients map[*int64]*Client
 
 	// Inbound messages from the clients.
 	broadcast chan []byte
@@ -32,7 +32,7 @@ func newHub() *Hub {
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
+		clients:    make(map[*int64]*Client),
 	}
 }
 
@@ -40,10 +40,10 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
-			h.clients[client] = true
+			h.clients[&client.id] = client
 		case client := <-h.unregister:
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
+			if _, ok := h.clients[&client.id]; ok {
+				delete(h.clients, &client.id)
 				close(client.send)
 			}
 		case message := <-h.broadcast:
@@ -51,12 +51,12 @@ func (h *Hub) run() {
 			msgSrv := mysql.NewMessageService()
 			msgSrv.CreateMsg(&zlabws.Message{Id: uuid.New().String(), Data: message[2:], Ctime: time.Now().Unix()})
 
-			for client := range h.clients {
+			for _, client := range h.clients {
 				select {
 				case client.send <- message:
 				default:
 					close(client.send)
-					delete(h.clients, client)
+					delete(h.clients, &client.id)
 				}
 			}
 		}
