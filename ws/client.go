@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -74,7 +75,7 @@ func (c *Client) readPump() {
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, message, err := c.conn.ReadMessage()
-		if err != nil {
+		if err != nil || len(message) < 2 {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
@@ -84,9 +85,11 @@ func (c *Client) readPump() {
 		if message[:1][0] == zlabws.AuthType {
 			var msg zlabws.AuthMsg
 			if err := json.Unmarshal(message[2:], &msg); err != nil {
+				log.Println(err.Error())
 				break
 			}
 			if !c.auth(&msg) {
+				log.Println(fmt.Errorf("authorization failed"))
 				break
 			}
 			c.hub.register <- c
@@ -148,7 +151,7 @@ func (c *Client) writePump() {
 func (c *Client) auth(msg *zlabws.AuthMsg) bool {
 	cache, _ := redis.NewRedisService()
 	defer cache.Conn.Close()
-	token := cache.Conn.HGetAll("token:" + strconv.FormatInt(msg.From, 10))
+	token := cache.Conn.HGetAll("tk:" + strconv.FormatInt(msg.From, 10))
 	if token.Val()["token"] != msg.Token {
 		return false
 	}
