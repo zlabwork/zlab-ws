@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
 	"zlabws"
 	"zlabws/ws"
+
+	"github.com/joho/godotenv"
+	"gopkg.in/yaml.v3"
 )
 
 func main() {

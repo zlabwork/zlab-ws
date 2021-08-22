@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"log"
 	"zlabws"
 )
 
@@ -12,10 +11,10 @@ func getHandle() (*handle, error) {
 	return ConnectMySQL(dsn)
 }
 
-func NewMessageService() *MessageService {
+func NewMessageService() (*MessageService, error) {
 	h, err := getHandle()
 	if err != nil {
-		log.Println(err)
+		return nil, err
 	}
-	return &MessageService{h: h}
+	return &MessageService{h: h}, nil
 }
