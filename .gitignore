@@ -41,3 +41,5 @@ Thumbs.db
 
 ### Project ###
 configs/app.yaml
+node_modules/
+package-lock.json
