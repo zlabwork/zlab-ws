@@ -1,4 +1,8 @@
 require.config({
+    baseUrl: 'assets/js',
+    paths: {
+        jquery: 'lib/jquery-3.6.0.min'
+    },
     packages: [
         {
             name: 'crypto-js',
@@ -6,8 +10,4 @@ require.config({
             main: 'index'
         }
     ]
-});
-
-require(["crypto-js/aes", "crypto-js/sha256"], function (AES, SHA256) {
-    console.log(SHA256("Message"));
 });
