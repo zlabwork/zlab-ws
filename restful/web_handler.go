@@ -1,4 +1,4 @@
-package ws
+package restful
 
 import (
 	"app"
@@ -6,12 +6,12 @@ import (
 	"net/http"
 )
 
-func defaultHandler(w http.ResponseWriter, r *http.Request) {
+func DefaultHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.ResponseData(w, msg.OK, app.VersionName+"@"+app.VersionNumber)
 }
 
-func devHandler(w http.ResponseWriter, r *http.Request) {
+func DevHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.EscapedPath() != "/dev" {
 		http.Error(w, "Not found", http.StatusNotFound)

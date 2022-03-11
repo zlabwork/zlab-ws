@@ -2,16 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package ws
+package service
 
 import (
-	"app"
-	"app/service/repository/mysql"
 	"encoding/json"
 	"log"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -39,7 +34,7 @@ func newHub() *Hub {
 	}
 }
 
-func (h *Hub) run() {
+func (h *Hub) Run() {
 
 	for {
 		select {
@@ -54,13 +49,6 @@ func (h *Hub) run() {
 			}
 
 		case message := <-h.broadcast:
-			// TODO :: 消息临时存储, 后续要修改逻辑
-			msgSrv, err := mysql.NewMessageService()
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			msgSrv.CreateMsg(&app.Message{Id: uuid.New().String(), Data: message[2:], Ctime: time.Now().Unix()})
 
 			// send to user
 			type who struct {
@@ -75,7 +63,7 @@ func (h *Hub) run() {
 			cli, ok := h.clients[w.To]
 			if !ok {
 				// TODO :: 存储到数据库
-				log.Println("user is not connected")
+				log.Println("the receiver user is not online")
 				continue
 			}
 			select {

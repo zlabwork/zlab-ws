@@ -2,22 +2,17 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package ws
+package service
 
 import (
 	"app"
-	"app/service/redis"
 	"bytes"
-	"context"
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 const (
@@ -50,6 +45,8 @@ var upgrader = websocket.Upgrader{
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
+	co *Container
+
 	hub *Hub
 
 	// The websocket connection.
@@ -87,13 +84,8 @@ func (c *Client) readPump() {
 			break
 		}
 
-		if message[:1][0] == app.AuthType {
-			var msg app.AuthMsg
-			if err := json.Unmarshal(message[2:], &msg); err != nil {
-				log.Println(err.Error())
-				break
-			}
-			if !c.auth(&msg) {
+		if message[0] == app.AuthType {
+			if !c.auth(message) {
 				log.Println(fmt.Errorf("authorization failed"))
 				break
 			}
@@ -153,33 +145,26 @@ func (c *Client) writePump() {
 }
 
 // check authorization
-func (c *Client) auth(msg *app.AuthMsg) bool {
-	cache, _ := redis.NewRedisService()
-	defer cache.Conn.Close()
-	token := cache.Conn.HGetAll(context.TODO(), "tk:"+strconv.FormatInt(msg.From, 10))
-	if token.Val()["token"] != msg.Token {
+func (c *Client) auth(msg []byte) bool {
+	m := app.AuthMsg{}
+	if err := json.Unmarshal(msg[2:], &m); err != nil {
+		log.Println(err.Error())
 		return false
 	}
+	log.Println(m)
 
-	// user id
-	c.id = msg.From
-
-	// secret key
-	h := md5.New()
-	h.Write([]byte(token.Val()["key"]))
-	c.key = h.Sum(nil)
-
+	// TODO: check token and set secret key
 	return true
 }
 
 // serveWs handles websocket requests from the peer.
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func serveWs(co *Container, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: co.Hub, conn: conn, send: make(chan []byte, 256)}
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.

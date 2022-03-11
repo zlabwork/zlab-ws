@@ -2,16 +2,17 @@ package main
 
 import (
 	"app"
-	"app/ws"
+	"app/restful"
+	"app/service"
 	"flag"
+	"github.com/joho/godotenv"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
-
-	"github.com/joho/godotenv"
-	"gopkg.in/yaml.v2"
 )
 
 func main() {
@@ -36,11 +37,30 @@ func main() {
 
 	// params
 	var wait time.Duration
+	var addr = flag.String("addr", ":8080", "http service address")
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	if len(os.Getenv("APP_PORT")) > 0 {
+		*addr = ":" + os.Getenv("APP_PORT")
+	}
+
+	// service
+	srv, err := service.NewService()
+	if err != nil {
+		log.Fatal(err)
+	}
+	srv.Run()
+
+	http.HandleFunc("/", restful.DefaultHandler)
+	http.HandleFunc("/dev", restful.DevHandler)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		srv.ServeWs(w, r)
+	})
 
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
-		ws.Run()
+		if err := http.ListenAndServe(*addr, nil); err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
 	}()
 	app.Banner("Service port :" + os.Getenv("APP_PORT"))
 	log.Println("the service is started")
