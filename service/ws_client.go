@@ -84,7 +84,7 @@ func (c *Client) readPump() {
 			break
 		}
 
-		if message[0] == app.AuthType {
+		if message[0] == app.TypeAuth {
 			if !c.auth(message) {
 				log.Println(fmt.Errorf("authorization failed"))
 				break
@@ -146,7 +146,7 @@ func (c *Client) writePump() {
 
 // check authorization
 func (c *Client) auth(msg []byte) bool {
-	m := app.AuthMsg{}
+	m := app.MsgAuth{}
 	if err := json.Unmarshal(msg[2:], &m); err != nil {
 		log.Println(err.Error())
 		return false
