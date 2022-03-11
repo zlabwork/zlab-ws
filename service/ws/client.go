@@ -6,7 +6,7 @@ package ws
 
 import (
 	"app"
-	"app/srv/redis"
+	"app/service/redis"
 	"bytes"
 	"context"
 	"crypto/md5"

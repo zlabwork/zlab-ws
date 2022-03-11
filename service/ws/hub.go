@@ -6,7 +6,7 @@ package ws
 
 import (
 	"app"
-	"app/srv/repository/mysql"
+	"app/service/repository/mysql"
 	"encoding/json"
 	"log"
 	"time"

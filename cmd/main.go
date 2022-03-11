@@ -2,7 +2,7 @@ package main
 
 import (
 	"app"
-	"app/ws"
+	"app/service/ws"
 	"flag"
 	"io/ioutil"
 	"log"
