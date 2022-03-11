@@ -1,4 +1,4 @@
-package zlabws
+package app
 
 const (
 	NullType uint8 = 0x00

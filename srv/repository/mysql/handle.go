@@ -16,6 +16,7 @@ var (
 	DefaultCollation = "utf8mb4_unicode_ci"
 )
 
+// ConnectMySQL
 // @docs http://go-database-sql.org/retrieving.html
 // @docs https://github.com/go-sql-driver/mysql/wiki/Examples
 // username:password@tcp(localhost:3306)/dbname?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci

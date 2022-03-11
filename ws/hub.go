@@ -5,11 +5,11 @@
 package ws
 
 import (
+	"app"
+	"app/srv/repository/mysql"
 	"encoding/json"
 	"log"
 	"time"
-	"zlabws"
-	"zlabws/srv/db/mysql"
 
 	"github.com/google/uuid"
 )
@@ -56,7 +56,7 @@ func (h *Hub) run() {
 				log.Println(err)
 				continue
 			}
-			msgSrv.CreateMsg(&zlabws.Message{Id: uuid.New().String(), Data: message[2:], Ctime: time.Now().Unix()})
+			msgSrv.CreateMsg(&app.Message{Id: uuid.New().String(), Data: message[2:], Ctime: time.Now().Unix()})
 
 			// send to user
 			type who struct {

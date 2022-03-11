@@ -1,4 +1,4 @@
-package zlabws
+package app
 
 type User struct {
 	Id     int64

@@ -1,4 +1,4 @@
-package zlabws
+package app
 
 type AuthMsg struct {
 	Id      string

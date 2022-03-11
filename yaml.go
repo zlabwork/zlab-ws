@@ -1,19 +1,7 @@
-package zlabws
+package app
 
-var Cfg = App{}
+var Yaml = &yaml{}
 
-type App struct {
-	Db struct {
-		Mysql struct {
-			Host string
-			Port string
-			User string
-			Pass string
-			Db   string
-		}
-		Redis struct {
-			Host string
-			Port string
-		}
-	}
+type yaml struct {
+	Access [][]string
 }

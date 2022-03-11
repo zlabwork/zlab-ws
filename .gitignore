@@ -40,6 +40,8 @@ go.sum
 Thumbs.db
 
 ### Project ###
-configs/app.yaml
+config/
+bin/
+*.log
 node_modules/
 package-lock.json

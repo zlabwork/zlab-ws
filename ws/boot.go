@@ -27,8 +27,8 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func Run() {
-	if len(os.Getenv("WS_HOST")) > 0 {
-		*addr = os.Getenv("WS_HOST")
+	if len(os.Getenv("APP_HOST")) > 0 {
+		*addr = os.Getenv("APP_HOST")
 	}
 	flag.Parse()
 	hub := newHub()

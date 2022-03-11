@@ -5,6 +5,8 @@
 package ws
 
 import (
+	"app"
+	"app/srv/redis"
 	"bytes"
 	"context"
 	"crypto/md5"
@@ -14,8 +16,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"zlabws"
-	"zlabws/srv/db/redis"
 
 	"github.com/gorilla/websocket"
 )
@@ -87,8 +87,8 @@ func (c *Client) readPump() {
 			break
 		}
 
-		if message[:1][0] == zlabws.AuthType {
-			var msg zlabws.AuthMsg
+		if message[:1][0] == app.AuthType {
+			var msg app.AuthMsg
 			if err := json.Unmarshal(message[2:], &msg); err != nil {
 				log.Println(err.Error())
 				break
@@ -153,7 +153,7 @@ func (c *Client) writePump() {
 }
 
 // check authorization
-func (c *Client) auth(msg *zlabws.AuthMsg) bool {
+func (c *Client) auth(msg *app.AuthMsg) bool {
 	cache, _ := redis.NewRedisService()
 	defer cache.Conn.Close()
 	token := cache.Conn.HGetAll(context.TODO(), "tk:"+strconv.FormatInt(msg.From, 10))

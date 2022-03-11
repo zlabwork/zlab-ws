@@ -1,4 +1,4 @@
-package zlabws
+package app
 
 type Message struct {
 	Id    string
