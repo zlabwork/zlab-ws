@@ -7,7 +7,7 @@ import (
 	"zlabws/ws"
 
 	"github.com/joho/godotenv"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 )
 
 func main() {
@@ -23,5 +23,6 @@ func main() {
 		log.Fatalf("error: %v", err)
 	}
 
+	log.Println("server is started")
 	ws.Run()
 }

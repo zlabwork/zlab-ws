@@ -6,6 +6,7 @@ package ws
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -155,7 +156,7 @@ func (c *Client) writePump() {
 func (c *Client) auth(msg *zlabws.AuthMsg) bool {
 	cache, _ := redis.NewRedisService()
 	defer cache.Conn.Close()
-	token := cache.Conn.HGetAll("tk:" + strconv.FormatInt(msg.From, 10))
+	token := cache.Conn.HGetAll(context.TODO(), "tk:"+strconv.FormatInt(msg.From, 10))
 	if token.Val()["token"] != msg.Token {
 		return false
 	}
