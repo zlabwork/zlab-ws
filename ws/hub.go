@@ -40,15 +40,19 @@ func newHub() *Hub {
 }
 
 func (h *Hub) run() {
+
 	for {
 		select {
+
 		case client := <-h.register:
 			h.clients[client.id] = client
+
 		case client := <-h.unregister:
 			if _, ok := h.clients[client.id]; ok {
 				delete(h.clients, client.id)
 				close(client.send)
 			}
+
 		case message := <-h.broadcast:
 			// TODO :: 消息临时存储, 后续要修改逻辑
 			msgSrv, err := mysql.NewMessageService()
@@ -81,6 +85,8 @@ func (h *Hub) run() {
 				delete(h.clients, cli.id)
 			}
 			// TODO :: send to group or channel
+
 		}
 	}
+
 }
