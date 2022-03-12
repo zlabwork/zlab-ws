@@ -1,6 +1,8 @@
 package redis
 
-import "github.com/go-redis/redis/v8"
+import (
+	"github.com/go-redis/redis/v8"
+)
 
 type CacheRepository struct {
 	Conn *redis.Client
@@ -23,12 +25,12 @@ func (cr *CacheRepository) Close() error {
 	return cr.Conn.Close()
 }
 
-func (cr *CacheRepository) GetToken(id string) (*string, error) {
+func (cr *CacheRepository) GetToken(id string) (string, error) {
 
-	return nil, nil
+	return "", nil
 }
 
-func (cr *CacheRepository) SetToken(id string, token *string) error {
+func (cr *CacheRepository) SetToken(id string, token string) error {
 
 	return nil
 }

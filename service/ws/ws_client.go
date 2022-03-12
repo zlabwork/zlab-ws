@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package service
+package ws
 
 import (
 	"app"
@@ -45,7 +45,7 @@ var upgrader = websocket.Upgrader{
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	co *Container
+	cache app.CacheFace
 
 	hub *Hub
 
@@ -157,14 +157,14 @@ func (c *Client) auth(msg []byte) bool {
 	return true
 }
 
-// serveWs handles websocket requests from the peer.
-func serveWs(co *Container, w http.ResponseWriter, r *http.Request) {
+// ServeWs handles websocket requests from the peer.
+func ServeWs(hub *Hub, cache app.CacheFace, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: co.Hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{cache: cache, hub: hub, conn: conn, send: make(chan []byte, 256)}
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.

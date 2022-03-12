@@ -1,28 +1,21 @@
 package service
 
 import (
+	"app"
 	"app/service/redis"
+	"app/service/ws"
 	"net/http"
 )
 
-type CacheFace interface {
-	Close() error
-	GetToken(id string) (*string, error)
-	SetToken(id string, token *string) error
-}
-
-type RepoFace interface {
-}
-
 type Container struct {
-	Cache CacheFace
-	Repo  RepoFace
-	Hub   *Hub
+	Cache app.CacheFace
+	Repo  app.RepoFace
+	Hub   *ws.Hub
 }
 
 func NewService() (*Container, error) {
 
-	hub := newHub()
+	hub := ws.NewHub()
 	cs, err := redis.NewCacheRepository()
 	if err != nil {
 		return nil, err
@@ -40,5 +33,5 @@ func (co *Container) Run() {
 }
 
 func (co *Container) ServeWs(w http.ResponseWriter, r *http.Request) {
-	serveWs(co, w, r)
+	ws.ServeWs(co.Hub, co.Cache, w, r)
 }

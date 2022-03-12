@@ -5,7 +5,7 @@ import "fmt"
 const (
 	VersionName = "messenger"
 
-	VersionNumber = "v0.3.0"
+	VersionNumber = "v0.4.0"
 
 	Website = "https://zlab.dev"
 
