@@ -5,7 +5,9 @@
 package ws
 
 import (
-	"encoding/json"
+	"encoding/binary"
+	"encoding/hex"
+	"fmt"
 	"log"
 )
 
@@ -50,17 +52,20 @@ func (h *Hub) Run() {
 
 		case message := <-h.broadcast:
 
+			fmt.Println(message)
+
+			msgType := message[1]
+			msgLength := binary.BigEndian.Uint16(message[2:4])
+			msgId := hex.EncodeToString(message[4:20])
+			msgSender := int64(binary.BigEndian.Uint64(message[12:20]))
+			msgReceiver := int64(binary.BigEndian.Uint64(message[20:28]))
+			msgBody := string(message[28:])
+
+			fmt.Println(msgType, msgLength, msgId)
+			fmt.Println(msgSender, msgReceiver, msgBody)
+
 			// send to user
-			type who struct {
-				From int64
-				To   int64
-			}
-			var w who
-			if err := json.Unmarshal(message[2:], &w); err != nil {
-				log.Println(err.Error())
-				continue
-			}
-			cli, ok := h.clients[w.To]
+			cli, ok := h.clients[msgReceiver]
 			if !ok {
 				// TODO :: 存储到数据库
 				log.Println("the receiver user is not online")

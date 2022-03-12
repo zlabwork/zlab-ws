@@ -7,7 +7,6 @@ package ws
 import (
 	"app"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
@@ -27,6 +26,12 @@ const (
 
 	// Maximum message size allowed from peer.
 	maxMessageSize = 2048
+
+	// Message head size 4 bytes (32 Bit)
+	headSize = 4
+
+	// Message body part size 24 bytes (64 * 3 Bit)
+	partSize = 24
 )
 
 var (
@@ -84,7 +89,7 @@ func (c *Client) readPump() {
 			break
 		}
 
-		if message[0] == app.TypeAuth {
+		if message[1] == app.TypeAuth {
 			if !c.auth(message) {
 				log.Println(fmt.Errorf("authorization failed"))
 				break
@@ -146,13 +151,7 @@ func (c *Client) writePump() {
 
 // check authorization
 func (c *Client) auth(msg []byte) bool {
-	m := app.MsgAuth{}
-	if err := json.Unmarshal(msg[2:], &m); err != nil {
-		log.Println(err.Error())
-		return false
-	}
-	log.Println(m)
-
+	log.Println(string(msg[headSize+partSize:]))
 	// TODO: check token and set secret key
 	return true
 }

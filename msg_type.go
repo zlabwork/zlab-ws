@@ -1,5 +1,7 @@
 package app
 
+import "time"
+
 const (
 	TypeNull  uint8 = 0x00
 	TypeBeats uint8 = 0x01
@@ -25,12 +27,21 @@ const (
 	TypeCustom      uint8 = 0xF0 // 自定义消息
 )
 
+type Message struct {
+	Type     uint8
+	Length   uint16
+	Id       string
+	Sender   int64
+	Receiver int64
+	DateTime time.Time
+}
+
 type MsgAuth struct {
-	Token   string
-	Uuid    string
-	Version string
-	Os      string
-	Time    int64
+	Token    string
+	Uuid     string
+	Version  string
+	Os       string
+	DateTime int64
 }
 
 type MsgCustom struct {
@@ -41,30 +52,31 @@ type MsgCustom struct {
 type MsgImage struct {
 	Width  int32
 	Height int32
-	Name   string
+	Uri    string
 }
 
 type MsgVoice struct {
 	Size     int32
 	Duration int32
-	Name     string
+	Uri      string
 }
 
 type MsgVideo struct {
 	Size     int32
 	Duration int32
-	Name     string
+	Uri      string
 }
 
 type MsgFile struct {
 	Size int32
 	Type string
+	Uri  string
 	Name string
 	Desc string
 }
 
 type MsgSticker struct {
-	Name string
+	Uri string
 }
 
 type MsgLocation struct {
