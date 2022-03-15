@@ -6,7 +6,12 @@ require.config({
     packages: [
         {
             name: 'crypto-js',
-            location: '../../node_module/crypto-js-4.1.1',
+            location: '../../node_modules/crypto-js',
+            main: 'index'
+        },
+        {
+            name: 'long',
+            location: '../../node_modules/long/umd',
             main: 'index'
         }
     ]

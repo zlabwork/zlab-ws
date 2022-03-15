@@ -51,7 +51,6 @@ func main() {
 	srv.Run()
 
 	http.HandleFunc("/", restful.DefaultHandler)
-	http.HandleFunc("/dev", restful.DevHandler)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		srv.ServeWs(w, r)
 	})
