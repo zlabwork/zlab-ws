@@ -13,6 +13,13 @@ require.config({
             name: 'long',
             location: '../../node_modules/long/umd',
             main: 'index'
+        },
+        {
+            name: 'uuid',
+            location: '../../node_modules/uuid/dist/umd',
+            main: 'uuid.min'
         }
     ]
 });
+
+require(['app/websocket']);

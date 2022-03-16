@@ -4,8 +4,9 @@
   "description": "https://github.com/requirejs/requirejs   https://github.com/volojs/create-template   https://github.com/requirejs/example-multipage",
   "main": "index.js",
   "dependencies": {
+    "crypto-js": "^4.1.1",
     "long": "^5.2.0",
-    "crypto-js": "^4.1.1"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {},
   "scripts": {
