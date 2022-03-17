@@ -1,9 +1,6 @@
 define(function (require) {
 
-    // @link https://github.com/dcodeIO/Long.js
-    // @link https://www.cnblogs.com/luludongxu/p/13366521.html
-    // @link https://blog.csdn.net/humanbeng/article/details/122010117
-
+    const Long = require("long")
     const nul = 0x00
     const lf = 0x0A // 换行符
     const us = 0x1F // 单元分隔符
@@ -19,6 +16,14 @@ define(function (require) {
     var conn;
     var msg = document.getElementById("msg");
     var log = document.getElementById("log");
+
+
+    function getSequenceId() {
+        // TODO:
+        // var n = Math.floor(Math.random() * 65535);
+        var ts = new Date().getTime()
+        return ts
+    }
 
     function getUserIdSender() {
         return Number(document.getElementById("senderId").value);
@@ -45,35 +50,51 @@ define(function (require) {
 
     // head: | 8 Bit Unused | 8 Bit Type | 16 Bit Length ｜
     // body: | 64 Bit SequenceID | 64 Bit SenderID | 64 Bit ReceiverID | Data ｜
-    // text to bytes with message type
-    function messagePackage(msgType, text) {
-        // string 转 bytes
-        let textBytes = new TextEncoder().encode(text);
-        let bs = new Uint8Array(textBytes.byteLength + headSize + bodyHeadSize)
-        // head
-        bs[0] = nul
-        bs[1] = msgType
-        for (var i = 0; i < textBytes.byteLength; i++) {
-            bs[i + headSize + bodyHeadSize] = textBytes[i];
+    function messagePackage(type, sequence, sender, receiver, data) {
+
+        // 1. Converts to Long
+        if (!Long.isLong(sequence)) {
+            sequence = Long.fromValue(sequence).toBytesBE()
         }
+        if (!Long.isLong(sender)) {
+            sender = Long.fromValue(sender).toBytesBE()
+        }
+        if (!Long.isLong(receiver)) {
+            receiver = Long.fromValue(receiver).toBytesBE()
+        }
+
+        // 2. string to bytes
+        let bodyData = new TextEncoder().encode(data);
+        let bs = new Uint8Array(bodyData.byteLength + headSize + bodyHeadSize)
+        bs[0] = nul
+        bs[1] = type
+
+        // 3. TODO: length & AES
+
+        // 4. sequence
+        for (var i = 0; i < sequence.length; i++) {
+            bs[i + headSize] = sequence[i];
+        }
+
+        // 5. sender
+        for (var i = 0; i < sender.length; i++) {
+            bs[i + headSize + 8] = sender[i];
+        }
+
+        // 6. receiver
+        for (var i = 0; i < receiver.length; i++) {
+            bs[i + headSize + 16] = receiver[i];
+        }
+
+        // 7. data
+        for (var i = 0; i < bodyData.byteLength; i++) {
+            bs[i + headSize + bodyHeadSize] = bodyData[i];
+        }
+
         return bs
     }
 
-    function messagePackageNew(msgType, sequence, sender, receiver, text) {
-        // string 转 bytes
-        let textBytes = new TextEncoder().encode(text);
-        let bs = new Uint8Array(textBytes.byteLength + headSize + bodyHeadSize)
-        // TODO: int64 to bytes
-        // head
-        bs[0] = nul
-        bs[1] = msgType
-        for (var i = 0; i < textBytes.byteLength; i++) {
-            bs[i + headSize + bodyHeadSize] = textBytes[i];
-        }
-        return bs
-    }
-
-    // auth
+    // send auth
     document.getElementById("auth").onclick = function () {
         if (!conn) {
             return false;
@@ -87,11 +108,11 @@ define(function (require) {
             "os": "ios",
             "dateTime": new Date().getTime()
         }
-        // TODO:
-        let bs = messagePackage(msgTypeAuth, JSON.stringify(data))
+        let bs = messagePackage(msgTypeAuth, 0, 0, 0, JSON.stringify(data))
         conn.send(bs);
     }
 
+    // send message
     document.getElementById("messageForm").onsubmit = function () {
         if (!conn) {
             return false;
@@ -100,6 +121,7 @@ define(function (require) {
             return false;
         }
 
+        let sequence = getSequenceId()
         let data = {
             "id": getUUID(),
             "sender": getUserIdSender(),
@@ -107,8 +129,8 @@ define(function (require) {
             "text": msg.value,
             "time": new Date().getTime(),
         }
-        // let bs = messagePackage(msgTypeText, JSON.stringify(data))
-        let bs = messagePackageNew(msgTypeText, 123456, 111111, 222222, msg.value)
+
+        let bs = messagePackage(msgTypeText, sequence, data.sender, data.receiver, msg.value)
         conn.send(bs);
         msg.value = "";
         return false;
