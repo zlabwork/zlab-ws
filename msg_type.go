@@ -80,7 +80,8 @@ type MsgSticker struct {
 }
 
 type MsgLocation struct {
-	Lat  float64
-	Lng  float64
-	Desc string
+	Lat   float64
+	Lng   float64
+	Title string
+	Desc  string
 }
