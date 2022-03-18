@@ -19,18 +19,17 @@ define(function (require) {
 
 
     function getSequenceId() {
-        // TODO:
-        // var n = Math.floor(Math.random() * 65535);
-        var ts = new Date().getTime()
-        return ts
+        let n = Math.floor(Math.random() * 65535);
+        let ts = new Date().getTime()
+        return Long.fromValue(ts).shiftLeft(16).or(n)
     }
 
     function getUserIdSender() {
-        return Number(document.getElementById("senderId").value);
+        return document.getElementById("senderId").value.trim();
     }
 
     function getUserIdReceiver() {
-        return Number(document.getElementById("receiverId").value);
+        return document.getElementById("receiverId").value.trim();
     }
 
     function getUUID() {
@@ -52,42 +51,43 @@ define(function (require) {
     // body: | 64 Bit SequenceID | 64 Bit SenderID | 64 Bit ReceiverID | Data ｜
     function messagePackage(type, sequence, sender, receiver, data) {
 
-        // 1. Converts to Long
-        if (!Long.isLong(sequence)) {
-            sequence = Long.fromValue(sequence).toBytesBE()
-        }
-        if (!Long.isLong(sender)) {
-            sender = Long.fromValue(sender).toBytesBE()
-        }
-        if (!Long.isLong(receiver)) {
-            receiver = Long.fromValue(receiver).toBytesBE()
-        }
+        var i = 0
+
+        // 1. Converts to bytes
+        sequence = Long.fromValue(sequence).toBytesBE()
+        sender = Long.fromValue(sender).toBytesBE()
+        receiver = Long.fromValue(receiver).toBytesBE()
 
         // 2. string to bytes
         let bodyData = new TextEncoder().encode(data);
-        let bs = new Uint8Array(bodyData.byteLength + headSize + bodyHeadSize)
+        let totalSize = headSize + bodyHeadSize + bodyData.byteLength
+        let bs = new Uint8Array(totalSize)
         bs[0] = nul
         bs[1] = type
 
         // 3. TODO: length & AES
+        let sizeBytes = Long.fromValue(totalSize).toBytesBE()
+        for (i = 0; i < sizeBytes.length; i++) {
+            bs[i + 2] = sizeBytes[i + 6];
+        }
 
         // 4. sequence
-        for (var i = 0; i < sequence.length; i++) {
+        for (i = 0; i < sequence.length; i++) {
             bs[i + headSize] = sequence[i];
         }
 
         // 5. sender
-        for (var i = 0; i < sender.length; i++) {
+        for (i = 0; i < sender.length; i++) {
             bs[i + headSize + 8] = sender[i];
         }
 
         // 6. receiver
-        for (var i = 0; i < receiver.length; i++) {
+        for (i = 0; i < receiver.length; i++) {
             bs[i + headSize + 16] = receiver[i];
         }
 
         // 7. data
-        for (var i = 0; i < bodyData.byteLength; i++) {
+        for (i = 0; i < bodyData.byteLength; i++) {
             bs[i + headSize + bodyHeadSize] = bodyData[i];
         }
 
