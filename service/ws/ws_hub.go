@@ -5,15 +5,18 @@
 package ws
 
 import (
+	"app"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
-	"log"
+	"time"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
+	// Database repository
+	repo app.RepoFace
+
 	// Registered clients.
 	clients map[int64]*Client
 
@@ -27,8 +30,9 @@ type Hub struct {
 	unregister chan *Client
 }
 
-func NewHub() *Hub {
+func NewHub(repo app.RepoFace) *Hub {
 	return &Hub{
+		repo:       repo,
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
@@ -51,24 +55,28 @@ func (h *Hub) Run() {
 			}
 
 		case message := <-h.broadcast:
-
-			fmt.Println(message)
+			now := time.Now()
 
 			msgType := message[1]
-			msgLength := binary.BigEndian.Uint16(message[2:4])
 			msgId := hex.EncodeToString(message[4:20])
 			msgSender := int64(binary.BigEndian.Uint64(message[12:20]))
 			msgReceiver := int64(binary.BigEndian.Uint64(message[20:28]))
-			msgBody := string(message[28:])
+			// msgLength := binary.BigEndian.Uint16(message[2:4])
+			// msgBody := string(message[28:])
 
-			fmt.Println(msgType, msgLength, msgId)
-			fmt.Println(msgSender, msgReceiver, msgBody)
+			// TODO :: send to group or channel
+
+			// Save to database
+			go func() {
+				h.repo.Create(msgType, msgId, msgSender, msgReceiver, message[28:], now)
+			}()
 
 			// send to user
 			cli, ok := h.clients[msgReceiver]
 			if !ok {
-				// TODO :: 存储到数据库
-				log.Println("the receiver user is not online")
+				go func() {
+					h.repo.CreateTodo(msgType, msgId, msgSender, msgReceiver, message[28:], now)
+				}()
 				continue
 			}
 			select {
@@ -77,8 +85,6 @@ func (h *Hub) Run() {
 				close(cli.send)
 				delete(h.clients, cli.id)
 			}
-			// TODO :: send to group or channel
-
 		}
 	}
 

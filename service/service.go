@@ -3,35 +3,40 @@ package service
 import (
 	"app"
 	"app/service/redis"
+	"app/service/repository/mysql"
 	"app/service/ws"
 	"net/http"
 )
 
 type Container struct {
-	Cache app.CacheFace
-	Repo  app.RepoFace
-	Hub   *ws.Hub
+	cache app.CacheFace
+	repo  app.RepoFace
+	hub   *ws.Hub
 }
 
 func NewService() (*Container, error) {
 
-	hub := ws.NewHub()
 	cs, err := redis.NewCacheRepository()
 	if err != nil {
 		return nil, err
 	}
+	repo, err := mysql.NewRepoFace()
+	if err != nil {
+		return nil, err
+	}
+	hub := ws.NewHub(repo)
 
-	// TODO: repo
 	return &Container{
-		Cache: cs,
-		Hub:   hub,
+		cache: cs,
+		repo:  repo,
+		hub:   hub,
 	}, nil
 }
 
 func (co *Container) Run() {
-	go co.Hub.Run()
+	go co.hub.Run()
 }
 
 func (co *Container) ServeWs(w http.ResponseWriter, r *http.Request) {
-	ws.ServeWs(co.Hub, co.Cache, w, r)
+	ws.ServeWs(co.hub, co.cache, w, r)
 }
