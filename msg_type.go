@@ -37,6 +37,7 @@ type Message struct {
 }
 
 type MsgAuth struct {
+	Sender   string
 	Token    string
 	Uuid     string
 	Version  string

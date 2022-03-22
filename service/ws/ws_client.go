@@ -7,10 +7,12 @@ package ws
 import (
 	"app"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -19,7 +21,7 @@ const (
 	writeWait = 10 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
+	pongWait = 20 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
@@ -82,7 +84,7 @@ func (c *Client) readPump() {
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, message, err := c.conn.ReadMessage()
-		if err != nil || len(message) < 2 {
+		if err != nil || len(message) < headSize {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
@@ -151,8 +153,22 @@ func (c *Client) writePump() {
 
 // check authorization
 func (c *Client) auth(msg []byte) bool {
-	log.Println(string(msg[headSize+partSize:]))
-	// TODO: check token and set secret key
+
+	var au app.MsgAuth
+	err := json.Unmarshal(msg[headSize+partSize:], &au)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	id, err := strconv.ParseInt(au.Sender, 10, 64)
+	if err != nil {
+		return false
+	}
+
+	// TODO: check token
+
+	c.id = id
+	c.hub.register <- c
 	return true
 }
 

@@ -11,7 +11,6 @@ body {
     background: #FFFFFF;
     font-family: "微软雅黑", sans-serif;
     font-size: 16px;
-    font-weight: bold;
     color: cadetblue;
 }
 
@@ -20,13 +19,26 @@ input {
     border-radius: 3px;
     padding: 12px;
     border: 0;
+}
+
+.pri-btn {
+    padding: 8px 15px;
+    border: 1px solid #3EB4C0;
+    background: #3EB4C0;
+    border-radius: 2px;
+    cursor: pointer;
+    outline: none;
     font-size: 16px;
-    background: #FFFFFF;
-    color: cadetblue;
-    font-weight: bold;
+    color: #F0F1B9;
+}
+
+.pri-btn:active {
+    border: 1px solid #68A4A6;
+    background: #68A4A6;
 }
 
 #messageTitle {
+    font-weight: bold;
     background: #f3f7f9;
     padding: 1em 0.5em 1em 0.5em;
     border-bottom: #dee2e6 1px solid;
@@ -45,6 +57,7 @@ input {
 }
 
 #messageForm {
+    text-align: right;
     background: #f3f7f9;
     padding: 1em 0.5em 1em 0.5em;
     border-top: #dee2e6 1px solid;
@@ -52,7 +65,16 @@ input {
     margin: 0;
     position: absolute;
     bottom: 1em;
-    left: 0px;
+    right: 0px;
     width: 100%;
     overflow: hidden;
+}
+
+div .textReceive {
+    color: #5B8081;
+}
+
+div .textSend {
+    text-align: right;
+    color: #C2BBA8;
 }

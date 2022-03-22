@@ -17,6 +17,17 @@ define(function (require) {
     var msg = document.getElementById("msg");
     var log = document.getElementById("log");
 
+    function getQuery(args) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            if (pair[0] == args) {
+                return pair[1];
+            }
+        }
+        return (false);
+    }
 
     function getSequenceId() {
         let n = Math.floor(Math.random() * 65535);
@@ -32,7 +43,7 @@ define(function (require) {
         return document.getElementById("receiverId").value.trim();
     }
 
-    function getUUID() {
+    function getUuid() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
@@ -94,82 +105,104 @@ define(function (require) {
         return bs
     }
 
-    // send auth
-    document.getElementById("auth").onclick = function () {
-        if (!conn) {
-            return false;
-        }
-        let data = {
-            "id": getUUID(),
-            "sender": getUserIdSender(),
-            "token": testToken,
-            "uuid": deviceUUID,
-            "version": "v1.0",
-            "os": "ios",
-            "dateTime": new Date().getTime()
-        }
-        let bs = messagePackage(msgTypeAuth, 0, 0, 0, JSON.stringify(data))
-        conn.send(bs);
-    }
+    function init() {
 
-    // send message
-    document.getElementById("messageForm").onsubmit = function () {
-        if (!conn) {
-            return false;
+        // argv
+        let sender = getQuery("sender")
+        let receiver = getQuery("receiver")
+        if (receiver != false) {
+            document.getElementById("receiverId").value = receiver;
         }
-        if (!msg.value) {
-            return false;
+        if (sender != false) {
+            document.getElementById("senderId").value = sender;
+            document.title = "User: " + sender
         }
 
-        let sequence = getSequenceId()
-        let data = {
-            "id": getUUID(),
-            "sender": getUserIdSender(),
-            "receiver": getUserIdReceiver(),
-            "text": msg.value,
-            "time": new Date().getTime(),
+        // send auth
+        document.getElementById("auth").onclick = function () {
+            if (!conn) {
+                return false;
+            }
+            let data = {
+                "id": getUuid(),
+                "sender": getUserIdSender(),
+                "token": testToken,
+                "uuid": deviceUUID,
+                "version": "v1.0",
+                "os": "ios",
+                "dateTime": new Date().getTime()
+            }
+            let bs = messagePackage(msgTypeAuth, 0, 0, 0, JSON.stringify(data))
+            conn.send(bs);
         }
 
-        // append logs
-        var item = document.createElement("div");
-        item.innerHTML = msg.value;
-        appendLog(item);
+        // send message
+        document.getElementById("submit").onclick = function () {
+            if (!conn) {
+                return false;
+            }
+            if (!msg.value) {
+                return false;
+            }
 
-        let bs = messagePackage(msgTypeText, sequence, data.sender, data.receiver, msg.value)
-        conn.send(bs);
-        msg.value = "";
-        return false;
-    };
+            let sequence = getSequenceId()
+            let data = {
+                "id": getUuid(),
+                "sender": getUserIdSender(),
+                "receiver": getUserIdReceiver(),
+                "text": msg.value,
+                "time": new Date().getTime(),
+            }
 
-    if (window["WebSocket"]) {
-        // conn = new WebSocket("ws://" + document.location.host + "/ws");
-        conn = new WebSocket("ws://127.0.0.1:3000/ws");
-        conn.binaryType = "arraybuffer"
-        conn.onclose = function (evt) {
+            // append logs
             var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
+            item.innerHTML = '<div class="textSend">' + msg.value + '</div>';
             appendLog(item);
+
+            let bs = messagePackage(msgTypeText, sequence, data.sender, data.receiver, msg.value)
+            conn.send(bs);
+            msg.value = "";
+            return false;
         };
-        conn.onmessage = function (event) {
-            var text = ""
-            if (typeof event.data === "string") {
-                text = event.data
-            }
-            if (event.data instanceof ArrayBuffer) {
-                var bs = new Uint8Array(event.data)
-                var data = bs.subarray(2, bs.byteLength)
-                text = new TextDecoder().decode(data);
-            }
-            var messages = text.split('\n');
-            for (var i = 0; i < messages.length; i++) {
+
+        if (window["WebSocket"]) {
+            // conn = new WebSocket("ws://" + document.location.host + "/ws");
+            conn = new WebSocket("ws://127.0.0.1:3000/ws");
+            conn.binaryType = "arraybuffer"
+            conn.onclose = function (evt) {
                 var item = document.createElement("div");
-                item.innerText = messages[i];
+                item.innerHTML = "<b>Connection closed.</b>";
                 appendLog(item);
-            }
-        };
-    } else {
-        var item = document.createElement("div");
-        item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
-        appendLog(item);
+            };
+            conn.onmessage = function (event) {
+                var text = ""
+                if (typeof event.data === "string") {
+                    text = event.data
+                }
+                if (event.data instanceof ArrayBuffer) {
+                    var bs = new Uint8Array(event.data)
+                    var mid = bs.subarray(headSize, headSize + 16)
+                    var sed = bs.subarray(headSize + 8, headSize + 16)
+                    var rev = bs.subarray(headSize + 16, headSize + bodyHeadSize)
+                    var data = bs.subarray(headSize + bodyHeadSize, bs.byteLength)
+                    var receiver = Long.fromBytes(rev).toString()
+                    var sender = Long.fromBytes(sed).toString()
+                    text = new TextDecoder().decode(data);
+                    console.log("Message Id: " + mid)
+                }
+                var messages = text.split('\n');
+                for (var i = 0; i < messages.length; i++) {
+                    var item = document.createElement("div");
+                    item.innerHTML = '<div class="textReceive">' + messages[i] + '</div>';
+                    appendLog(item);
+                }
+            };
+        } else {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
+            appendLog(item);
+        }
     }
+
+    init()
 });
