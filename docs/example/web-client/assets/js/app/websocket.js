@@ -130,6 +130,11 @@ define(function (require) {
             "time": new Date().getTime(),
         }
 
+        // append logs
+        var item = document.createElement("div");
+        item.innerHTML = msg.value;
+        appendLog(item);
+
         let bs = messagePackage(msgTypeText, sequence, data.sender, data.receiver, msg.value)
         conn.send(bs);
         msg.value = "";

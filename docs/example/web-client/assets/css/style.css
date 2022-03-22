@@ -1,0 +1,58 @@
+html {
+    overflow: hidden;
+}
+
+body {
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #FFFFFF;
+    font-family: "微软雅黑", sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    color: cadetblue;
+}
+
+input {
+    outline-style: none;
+    border-radius: 3px;
+    padding: 12px;
+    border: 0;
+    font-size: 16px;
+    background: #FFFFFF;
+    color: cadetblue;
+    font-weight: bold;
+}
+
+#messageTitle {
+    background: #f3f7f9;
+    padding: 1em 0.5em 1em 0.5em;
+    border-bottom: #dee2e6 1px solid;
+}
+
+#log {
+    background: white;
+    margin: 0;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    position: absolute;
+    top: 5.5em;
+    left: 0.5em;
+    right: 0.5em;
+    bottom: 5em;
+    overflow: auto;
+}
+
+#messageForm {
+    background: #f3f7f9;
+    padding: 1em 0.5em 1em 0.5em;
+    border-top: #dee2e6 1px solid;
+    overflow: hidden;
+    margin: 0;
+    position: absolute;
+    bottom: 1em;
+    left: 0px;
+    width: 100%;
+    overflow: hidden;
+}

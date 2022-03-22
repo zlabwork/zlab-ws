@@ -2,50 +2,10 @@
 <html lang="en">
 <head>
     <title>zlab websocket chat</title>
-    <style type="text/css">
-        html {
-            overflow: hidden;
-        }
-
-        body {
-            overflow: hidden;
-            padding: 0;
-            margin: 0;
-            width: 100%;
-            height: 100%;
-            background: gray;
-        }
-
-        #log {
-            background: white;
-            margin: 0;
-            padding: 0.5em 0.5em 0.5em 0.5em;
-            position: absolute;
-            top: 3.5em;
-            left: 0.5em;
-            right: 0.5em;
-            bottom: 5em;
-            overflow: auto;
-        }
-
-        #messageForm {
-            padding: 0 0.5em 1em 0.5em;
-            margin: 0;
-            position: absolute;
-            bottom: 1em;
-            left: 0px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        #container {
-            padding: 1em 0.5em 0.5em 0.5em;
-        }
-
-    </style>
+    <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
-<div id="container">
+<div id="messageTitle">
     Sender: <input type="text" id="senderId" name="sender" value="111111"/>
     Receiver: <input type="text" id="receiverId" name="receiver" value="100000"/>
 </div>
