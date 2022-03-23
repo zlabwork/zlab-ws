@@ -9,6 +9,8 @@ type CacheFace interface {
 }
 
 type RepoFace interface {
-	Create(msgType uint8, msgId string, sender, receiver int64, body []byte, date time.Time) error
+	GetTodo(userId int64) ([]*RepoMsg, error)
+	DeleteTodo(userId int64) error
 	CreateTodo(msgType uint8, msgId string, sender, receiver int64, body []byte, date time.Time) error
+	CreateLogs(msgType uint8, msgId string, sender, receiver int64, body []byte, date time.Time) error
 }

@@ -7,6 +7,8 @@ package ws
 import (
 	"app"
 	"bytes"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
@@ -54,6 +56,8 @@ var upgrader = websocket.Upgrader{
 type Client struct {
 	cache app.CacheFace
 
+	repo app.RepoFace
+
 	hub *Hub
 
 	// The websocket connection.
@@ -91,12 +95,15 @@ func (c *Client) readPump() {
 			break
 		}
 
+		// TODO: Message Decryption
+
 		if message[1] == app.TypeAuth {
-			if !c.auth(message) {
+			if !c.authorize(message) {
 				log.Println(fmt.Errorf("authorization failed"))
 				break
 			}
 			c.hub.register <- c
+			c.sendCachedData()
 
 		} else {
 			message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
@@ -130,6 +137,9 @@ func (c *Client) writePump() {
 			if err != nil {
 				return
 			}
+
+			// TODO: Message Encryption
+
 			w.Write(message)
 
 			// Add queued chat messages to the current websocket message.
@@ -152,7 +162,7 @@ func (c *Client) writePump() {
 }
 
 // check authorization
-func (c *Client) auth(msg []byte) bool {
+func (c *Client) authorize(msg []byte) bool {
 
 	var au app.MsgAuth
 	err := json.Unmarshal(msg[headSize+partSize:], &au)
@@ -172,14 +182,42 @@ func (c *Client) auth(msg []byte) bool {
 	return true
 }
 
+// send message which cached in database
+func (c *Client) sendCachedData() {
+	data, err := c.repo.GetTodo(c.id)
+	if err != nil {
+		return
+	}
+
+	for _, item := range data {
+		rev := make([]byte, 8)
+		binary.BigEndian.PutUint64(rev, uint64(item.Receiver))
+
+		mid, err := hex.DecodeString(item.Mid)
+		if err != nil {
+			continue
+		}
+
+		b := make([]byte, 28+len(item.Data))
+		copy(b[1:2], []byte{item.Type})
+		copy(b[4:20], mid)
+		copy(b[20:28], rev)
+		copy(b[28:], item.Data)
+
+		c.send <- b
+	}
+	// TODO: Delete message cached
+	// c.repo.DeleteTodo(c.id)
+}
+
 // ServeWs handles websocket requests from the peer.
-func ServeWs(hub *Hub, cache app.CacheFace, w http.ResponseWriter, r *http.Request) {
+func ServeWs(hub *Hub, cache app.CacheFace, repo app.RepoFace, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	client := &Client{cache: cache, hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{cache: cache, repo: repo, hub: hub, conn: conn, send: make(chan []byte, 256)}
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.

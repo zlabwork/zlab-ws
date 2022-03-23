@@ -1,5 +1,6 @@
 define(function (require) {
 
+    const HOST = "ws://127.0.0.1:3000/ws"
     const Long = require("long")
     const nul = 0x00
     const lf = 0x0A // 换行符
@@ -167,7 +168,7 @@ define(function (require) {
 
         if (window["WebSocket"]) {
             // conn = new WebSocket("ws://" + document.location.host + "/ws");
-            conn = new WebSocket("ws://127.0.0.1:3000/ws");
+            conn = new WebSocket(HOST);
             conn.binaryType = "arraybuffer"
             conn.onclose = function (evt) {
                 var item = document.createElement("div");
@@ -175,27 +176,30 @@ define(function (require) {
                 appendLog(item);
             };
             conn.onmessage = function (event) {
-                var text = ""
-                if (typeof event.data === "string") {
-                    text = event.data
+
+                if (event.data instanceof ArrayBuffer === false) {
+                    return
                 }
-                if (event.data instanceof ArrayBuffer) {
-                    var bs = new Uint8Array(event.data)
-                    var mid = bs.subarray(headSize, headSize + 16)
-                    var sed = bs.subarray(headSize + 8, headSize + 16)
-                    var rev = bs.subarray(headSize + 16, headSize + bodyHeadSize)
-                    var data = bs.subarray(headSize + bodyHeadSize, bs.byteLength)
-                    var receiver = Long.fromBytes(rev).toString()
-                    var sender = Long.fromBytes(sed).toString()
-                    text = new TextDecoder().decode(data);
-                    console.log("Message Id: " + mid)
-                }
-                var messages = text.split('\n');
-                for (var i = 0; i < messages.length; i++) {
-                    var item = document.createElement("div");
-                    item.innerHTML = '<div class="textReceive">' + messages[i] + '</div>';
-                    appendLog(item);
-                }
+
+                var head = new Uint8Array(event.data, 0, headSize);
+                var body = new Uint8Array(event.data, headSize)
+
+                // slice
+                var mid = body.subarray(0, 16)
+                var sed = body.subarray(8, 16)
+                var rev = body.subarray(16, bodyHeadSize)
+                var data = body.subarray(bodyHeadSize, body.byteLength)
+                var receiver = Long.fromBytes(rev).toString()
+                var sender = Long.fromBytes(sed).toString()
+                var text = new TextDecoder().decode(data);
+
+                // logs
+                console.log("Message Id: " + mid)
+
+                // insert
+                var item = document.createElement("div");
+                item.innerHTML = '<div class="textReceive">' + text + '</div>';
+                appendLog(item);
             };
         } else {
             var item = document.createElement("div");

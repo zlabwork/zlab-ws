@@ -68,7 +68,7 @@ func (h *Hub) Run() {
 
 			// Save to database
 			go func() {
-				h.repo.Create(msgType, msgId, msgSender, msgReceiver, message[28:], now)
+				h.repo.CreateLogs(msgType, msgId, msgSender, msgReceiver, message[28:], now)
 			}()
 
 			// send to user

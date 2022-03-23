@@ -38,5 +38,5 @@ func (co *Container) Run() {
 }
 
 func (co *Container) ServeWs(w http.ResponseWriter, r *http.Request) {
-	ws.ServeWs(co.hub, co.cache, w, r)
+	ws.ServeWs(co.hub, co.cache, co.repo, w, r)
 }
