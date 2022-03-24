@@ -186,12 +186,12 @@ define(function (require) {
 
                 // slice
                 var mid = body.subarray(0, 16)
-                var sed = body.subarray(8, 16)
-                var rev = body.subarray(16, bodyHeadSize)
+                var send = body.subarray(8, 16)
+                var recv = body.subarray(16, bodyHeadSize)
                 var data = body.subarray(bodyHeadSize, body.byteLength)
-                var receiver = Long.fromBytes(rev).toString()
-                var sender = Long.fromBytes(sed).toString()
-                var text = new TextDecoder().decode(data);
+                var receiver = Long.fromBytes(recv).toString()
+                var sender = Long.fromBytes(send).toString()
+                var text = new TextDecoder().decode(data)
 
                 // logs
                 console.log("Message Id: " + mid)

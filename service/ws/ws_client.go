@@ -6,7 +6,6 @@ package ws
 
 import (
 	"app"
-	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -35,12 +34,7 @@ const (
 	headSize = 4
 
 	// Message body part size 24 bytes (64 * 3 Bit)
-	partSize = 24
-)
-
-var (
-	newline = []byte{'\n'}
-	space   = []byte{' '}
+	bodyHeadSize = 24
 )
 
 var upgrader = websocket.Upgrader{
@@ -106,8 +100,9 @@ func (c *Client) readPump() {
 			c.sendCachedData()
 
 		} else {
-			message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-			c.hub.broadcast <- message
+			// TODO: 处理粘包问题
+			len := binary.BigEndian.Uint16(message[2:headSize])
+			c.hub.broadcast <- message[:len]
 		}
 	}
 }
@@ -145,7 +140,6 @@ func (c *Client) writePump() {
 			// Add queued chat messages to the current websocket message.
 			n := len(c.send)
 			for i := 0; i < n; i++ {
-				w.Write(newline)
 				w.Write(<-c.send)
 			}
 
@@ -165,7 +159,7 @@ func (c *Client) writePump() {
 func (c *Client) authorize(msg []byte) bool {
 
 	var au app.MsgAuth
-	err := json.Unmarshal(msg[headSize+partSize:], &au)
+	err := json.Unmarshal(msg[headSize+bodyHeadSize:], &au)
 	if err != nil {
 		log.Println(err)
 		return false
@@ -193,6 +187,9 @@ func (c *Client) sendCachedData() {
 		rev := make([]byte, 8)
 		binary.BigEndian.PutUint64(rev, uint64(item.Receiver))
 
+		lb := make([]byte, 16)
+		binary.BigEndian.PutUint16(lb, uint16(len(item.Data)+headSize+bodyHeadSize))
+
 		mid, err := hex.DecodeString(item.Mid)
 		if err != nil {
 			continue
@@ -200,6 +197,7 @@ func (c *Client) sendCachedData() {
 
 		b := make([]byte, 28+len(item.Data))
 		copy(b[1:2], []byte{item.Type})
+		copy(b[2:4], lb)
 		copy(b[4:20], mid)
 		copy(b[20:28], rev)
 		copy(b[28:], item.Data)
