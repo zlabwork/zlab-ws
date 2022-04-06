@@ -42,3 +42,20 @@ require(["long"], function (Long) {
     console.log(value2.toString());
 });
 ```
+
+```js
+// Uint8Array to Uint16
+
+// var bf = new Uint8Array([1, 2]) // 仅适用方法一
+var bf = new Buffer([1, 2]) // 适用两种方法
+
+// 方法一
+var view = new DataView(bf.buffer, 0);
+var i = view.getUint16(0, false);
+console.log(i)
+
+// 方法二
+var i = bf.readUInt16BE(0)
+console.log(i);
+
+```

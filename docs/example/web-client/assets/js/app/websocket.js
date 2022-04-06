@@ -59,6 +59,17 @@ define(function (require) {
         }
     }
 
+    function toUint16(bf, offset, length) {
+        let view = new DataView(bf.buffer, offset, length);
+        return view.getUint16(0, false);
+    }
+
+    function toHexString(bytes) {
+        return Array.from(bytes, function (byte) {
+            return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+        }).join('')
+    }
+
     // head: | 8 Bit Unused | 8 Bit Type | 16 Bit Length ｜
     // body: | 64 Bit SequenceID | 64 Bit SenderID | 64 Bit ReceiverID | Data ｜
     function messagePackage(type, sequence, sender, receiver, data) {
@@ -181,25 +192,41 @@ define(function (require) {
                     return
                 }
 
-                var head = new Uint8Array(event.data, 0, headSize);
-                var body = new Uint8Array(event.data, headSize)
+                var length = event.data.byteLength
+                var arrayData = new Uint8Array(event.data, 0)
+                var offset = 0
 
-                // slice
-                var mid = body.subarray(0, 16)
-                var send = body.subarray(8, 16)
-                var recv = body.subarray(16, bodyHeadSize)
-                var data = body.subarray(bodyHeadSize, body.byteLength)
-                var receiver = Long.fromBytes(recv).toString()
-                var sender = Long.fromBytes(send).toString()
-                var text = new TextDecoder().decode(data)
+                while (offset < length) {
+                    var l = toUint16(arrayData, offset + 2, 2)
+                    if (l === 0) {
+                        return;
+                    }
+                    var data = new Uint8Array(event.data, offset, l)
+                    var head = data.subarray(0, headSize)
+                    if (head[0] !== nul) {
+                        return;
+                    }
+                    var body = data.subarray(headSize, l)
 
-                // logs
-                console.log("Message Id: " + mid)
+                    // slice
+                    var mid = body.subarray(0, 16)
+                    var send = Long.fromBytes(body.subarray(8, 16)).toString()
+                    var recv = Long.fromBytes(body.subarray(16, bodyHeadSize)).toString()
+                    var content = body.subarray(bodyHeadSize, body.byteLength)
+                    var text = new TextDecoder().decode(content)
 
-                // insert
-                var item = document.createElement("div");
-                item.innerHTML = '<div class="textReceive">' + text + '</div>';
-                appendLog(item);
+                    // logs
+                    // console.log("send:" + send + ", recv:" + recv)
+                    console.log("Message Id: " + toHexString(mid))
+
+                    // insert
+                    var item = document.createElement("div");
+                    item.innerHTML = '<div class="textReceive">' + text + '</div>';
+                    appendLog(item);
+
+                    // offset
+                    offset += l
+                }
             };
         } else {
             var item = document.createElement("div");
