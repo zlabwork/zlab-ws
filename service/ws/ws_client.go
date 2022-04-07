@@ -6,6 +6,8 @@ package ws
 
 import (
 	"app"
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -65,6 +67,9 @@ type Client struct {
 
 	// secret key
 	key []byte
+
+	// AES cipher.Block
+	block cipher.Block
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -133,14 +138,12 @@ func (c *Client) writePump() {
 				return
 			}
 
-			// TODO: Message Encryption
-
-			w.Write(message)
+			w.Write(*c.encrypt(message))
 
 			// Add queued chat messages to the current websocket message.
 			n := len(c.send)
 			for i := 0; i < n; i++ {
-				w.Write(<-c.send)
+				w.Write(*c.encrypt(<-c.send))
 			}
 
 			if err := w.Close(); err != nil {
@@ -187,9 +190,6 @@ func (c *Client) sendCachedData() {
 		rev := make([]byte, 8)
 		binary.BigEndian.PutUint64(rev, uint64(item.Receiver))
 
-		lb := make([]byte, 16)
-		binary.BigEndian.PutUint16(lb, uint16(len(item.Data)+headSize+bodyHeadSize))
-
 		mid, err := hex.DecodeString(item.Mid)
 		if err != nil {
 			continue
@@ -197,7 +197,6 @@ func (c *Client) sendCachedData() {
 
 		b := make([]byte, 28+len(item.Data))
 		copy(b[1:2], []byte{item.Type})
-		copy(b[2:4], lb)
 		copy(b[4:20], mid)
 		copy(b[20:28], rev)
 		copy(b[28:], item.Data)
@@ -208,6 +207,22 @@ func (c *Client) sendCachedData() {
 	// c.repo.DeleteTodo(c.id)
 }
 
+// Message Encryption
+func (c *Client) encrypt(message []byte) *[]byte {
+	ciphertext, err := encrypt(c.block, message[headSize:])
+	if err != nil {
+		return nil
+	}
+	l := len(ciphertext) + headSize
+	lb := make([]byte, 16)
+	binary.BigEndian.PutUint16(lb, uint16(l))
+	data := make([]byte, l)
+	copy(data[0:2], message[:2])
+	copy(data[2:headSize], lb)
+	copy(data[headSize:], ciphertext)
+	return &data
+}
+
 // ServeWs handles websocket requests from the peer.
 func ServeWs(hub *Hub, cache app.CacheFace, repo app.RepoFace, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -216,6 +231,9 @@ func ServeWs(hub *Hub, cache app.CacheFace, repo app.RepoFace, w http.ResponseWr
 		return
 	}
 	client := &Client{cache: cache, repo: repo, hub: hub, conn: conn, send: make(chan []byte, 256)}
+
+	// TODO: dev test, need to Delete
+	client.block, _ = aes.NewCipher([]byte("11111111111111111111111111111111"))
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
