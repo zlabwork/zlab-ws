@@ -68,14 +68,18 @@ func (h *Hub) Run() {
 
 			// Save to database
 			go func() {
-				h.repo.CreateLogs(msgType, msgId, msgSender, msgReceiver, message[28:], now)
+				if h.repo.CreateLogs(msgType, msgId, msgSender, msgReceiver, message[28:], now) != nil {
+					return
+				}
 			}()
 
 			// send to user
 			cli, ok := h.clients[msgReceiver]
 			if !ok {
 				go func() {
-					h.repo.CreateTodo(msgType, msgId, msgSender, msgReceiver, message[28:], now)
+					if h.repo.CreateTodo(msgType, msgId, msgSender, msgReceiver, message[28:], now) != nil {
+						return
+					}
 				}()
 				continue
 			}
