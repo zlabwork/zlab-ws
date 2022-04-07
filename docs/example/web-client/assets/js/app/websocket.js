@@ -7,6 +7,7 @@ define(function (require) {
     const us = 0x1F // 单元分隔符
     const msgTypeAuth = 0x03
     const msgTypeText = 0x20
+    const epoch = 1288834974657
 
     const headSize = 4 // 32 Bit
     const bodyHeadSize = 24 // 192 Bit
@@ -30,10 +31,17 @@ define(function (require) {
         return (false);
     }
 
-    function getSequenceId() {
+    // 7 bit + 41 bit + 16 bit
+    function getSequenceId(isPrivate) {
+        var s = 0 // TODO: 7 bit
+        if (isPrivate === true) {
+            s = 0b0100000
+        } else {
+            s = 0b1000000
+        }
+        let t = new Date().getTime() - epoch
         let n = Math.floor(Math.random() * 65535);
-        let ts = new Date().getTime()
-        return Long.fromValue(ts).shiftLeft(16).or(n)
+        return Long.fromValue(s).shiftLeft(41).or(t).shiftLeft(16).or(n)
     }
 
     function getUserIdSender() {
@@ -157,7 +165,7 @@ define(function (require) {
                 return false;
             }
 
-            let sequence = getSequenceId()
+            let sequence = getSequenceId(true)
             let data = {
                 "id": getUuid(),
                 "sender": getUserIdSender(),
