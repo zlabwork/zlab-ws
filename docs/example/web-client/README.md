@@ -59,3 +59,19 @@ var i = bf.readUInt16BE(0)
 console.log(i);
 
 ```
+
+```js
+// CryptoJS AES Decrypt
+
+var secretKey = CryptoJS.enc.Utf8.parse("1111111111111111")
+var options = {
+    // iv: CryptoJS.enc.Base64.parse("KEy53TMJckZRgf8IstjtEg=="),
+    iv: CryptoJS.enc.Hex.parse("284cb9dd330972465181ff08b2d8ed12"),
+    mode: CryptoJS.mode.CFB,
+    padding: CryptoJS.pad.NoPadding
+};
+var ciphertext = "ee+xwplB9OfMw2EblcfftQvruSY4MrxAsq3QL+kva6rDZZmKFDFV/JpxuaGBbmSPWV92HmPRys9nCKKhRzbd"
+var plaintext = CryptoJS.AES.decrypt(ciphertext, secretKey, options);
+var originalText = plaintext.toString(CryptoJS.enc.Utf8);
+console.log(originalText)
+```
