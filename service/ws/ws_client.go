@@ -86,28 +86,33 @@ func (c *Client) readPump() {
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, message, err := c.conn.ReadMessage()
-		if err != nil || len(message) < headSize {
+		// 1. Read
+		_, data, err := c.conn.ReadMessage()
+		if err != nil || len(data) < headSize {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
 			break
 		}
 
-		// TODO: Message Decryption
+		// 2. Message Decryption
+		msg, err := decrypt(c.block, data[headSize:])
+		copy(data[headSize:], msg)
 
-		if message[1] == app.TypeAuth {
-			if !c.authorize(message) {
+		// 3. switch
+		switch data[1] {
+		case app.TypeAuth:
+			if !c.authorize(data[:len(msg)+headSize]) {
 				log.Println(fmt.Errorf("authorization failed"))
 				break
 			}
 			c.hub.register <- c
 			c.sendCachedData()
 
-		} else {
+		default:
 			// TODO: 处理粘包问题
-			len := binary.BigEndian.Uint16(message[2:headSize])
-			c.hub.broadcast <- message[:len]
+			// len := binary.BigEndian.Uint16(data[2:headSize])
+			c.hub.broadcast <- data[:len(msg)+headSize]
 		}
 	}
 }
@@ -173,7 +178,7 @@ func (c *Client) authorize(msg []byte) bool {
 	}
 
 	// TODO: check token
-
+	log.Println("SUCCESS:", au)
 	c.id = id
 	c.hub.register <- c
 	return true
@@ -203,8 +208,8 @@ func (c *Client) sendCachedData() {
 
 		c.send <- b
 	}
-	// TODO: Delete message cached
-	// c.repo.DeleteTodo(c.id)
+	// Delete message cached
+	c.repo.DeleteTodo(c.id)
 }
 
 // Message Encryption

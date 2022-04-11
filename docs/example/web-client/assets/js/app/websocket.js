@@ -46,6 +46,20 @@ define(function (require) {
         return Long.fromValue(s).shiftLeft(41).or(t).shiftLeft(16).or(n)
     }
 
+    function getRandomBytes(len) {
+        const arr = new Uint8Array(len)
+        window.crypto.getRandomValues(arr)
+        return arr
+    }
+
+    function getAesOption(iv) {
+        return {
+            iv: CryptoJS.enc.Base64.parse(iv),
+            mode: CryptoJS.mode.CFB,
+            padding: CryptoJS.pad.NoPadding
+        };
+    }
+
     function getUserIdSender() {
         return document.getElementById("senderId").value.trim();
     }
@@ -114,10 +128,10 @@ define(function (require) {
         bs[1] = type
 
         // 3. TODO: length & AES
-        let sizeBytes = Long.fromValue(totalSize).toBytesBE()
-        for (i = 0; i < sizeBytes.length; i++) {
-            bs[i + 2] = sizeBytes[i + 6];
-        }
+        // let sizeBytes = Long.fromValue(totalSize).toBytesBE()
+        // for (i = 0; i < sizeBytes.length; i++) {
+        //     bs[i + 2] = sizeBytes[i + 6];
+        // }
 
         // 4. sequence
         for (i = 0; i < sequence.length; i++) {
@@ -139,7 +153,23 @@ define(function (require) {
             bs[i + headSize + bodyHeadSize] = bodyData[i];
         }
 
-        return bs
+        // Encrypt
+        let iv = getRandomBytes(16)
+        let plaintext = CryptoJS.enc.Hex.parse(toHexString(bs.subarray(headSize)))
+        var cipher = CryptoJS.AES.encrypt(
+            plaintext,
+            secretKey,
+            getAesOption(window.btoa(String.fromCharCode(...iv)))
+        )
+        cipher = wordArrayToUint8Array(cipher.ciphertext)
+        let allString = bs.subarray(0, headSize) + "," + iv + "," + cipher
+        let allBytes = new Uint8Array(allString.split(","))
+        let sizeBytes = Long.fromValue(allBytes.length).toBytesBE()
+        for (i = 0; i < 2; i++) {
+            allBytes[i + 2] = sizeBytes[i + 6];
+        }
+
+        return allBytes
     }
 
     function init() {
@@ -236,12 +266,7 @@ define(function (require) {
                     // Decrypt
                     var iv = window.btoa(String.fromCharCode(...body.subarray(0, 16)))
                     var ciphertext = window.btoa(String.fromCharCode(...body.subarray(16)))
-                    var options = {
-                        iv: CryptoJS.enc.Base64.parse(iv),
-                        mode: CryptoJS.mode.CFB,
-                        padding: CryptoJS.pad.NoPadding
-                    };
-                    var plaintext = CryptoJS.AES.decrypt(ciphertext, secretKey, options);
+                    var plaintext = CryptoJS.AES.decrypt(ciphertext, secretKey, getAesOption(iv));
                     body = wordArrayToUint8Array(plaintext)
 
                     // slice
