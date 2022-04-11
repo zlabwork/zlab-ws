@@ -23,9 +23,7 @@ require.config({
         }
     ]
 });
-
 ```
-
 
 ## 使用 js 
 ```js
@@ -44,7 +42,7 @@ require(["long"], function (Long) {
 ```
 
 ```js
-// Uint8Array to Uint16
+// Uint8Array|Buffer to Uint16
 
 // var bf = new Uint8Array([1, 2]) // 仅适用方法一
 var bf = new Buffer([1, 2]) // 适用两种方法
@@ -57,7 +55,13 @@ console.log(i)
 // 方法二
 var i = bf.readUInt16BE(0)
 console.log(i);
+```
 
+```js
+// text to bytes
+let bytes = new TextEncoder().encode(text);
+// bytes to text
+let text = new TextDecoder().decode(bytes);
 ```
 
 ```js

@@ -233,7 +233,8 @@ func ServeWs(hub *Hub, cache app.CacheFace, repo app.RepoFace, w http.ResponseWr
 	client := &Client{cache: cache, repo: repo, hub: hub, conn: conn, send: make(chan []byte, 256)}
 
 	// TODO: dev test, need to Delete
-	client.block, _ = aes.NewCipher([]byte("11111111111111111111111111111111"))
+	b, _ := hex.DecodeString("ffffffffffffffffffffffffffffffff")
+	client.block, _ = aes.NewCipher(b)
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.

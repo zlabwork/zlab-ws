@@ -2,6 +2,7 @@ define(function (require) {
 
     const HOST = "ws://127.0.0.1:3000/ws"
     const Long = require("long")
+    const CryptoJS = require("crypto-js");
     const nul = 0x00
     const lf = 0x0A // 换行符
     const us = 0x1F // 单元分隔符
@@ -18,6 +19,7 @@ define(function (require) {
     var conn;
     var msg = document.getElementById("msg");
     var log = document.getElementById("log");
+    var secretKey = CryptoJS.enc.Hex.parse("ffffffffffffffffffffffffffffffff")
 
     function getQuery(args) {
         var query = window.location.search.substring(1);
@@ -76,6 +78,21 @@ define(function (require) {
         return Array.from(bytes, function (byte) {
             return ('0' + (byte & 0xFF).toString(16)).slice(-2);
         }).join('')
+    }
+
+    function wordArrayToUint8Array(wordArray) {
+        var len = wordArray.words.length,
+            u8_array = new Uint8Array(len << 2),
+            offset = 0, word, i
+        ;
+        for (i = 0; i < len; i++) {
+            word = wordArray.words[i];
+            u8_array[offset++] = word >> 24;
+            u8_array[offset++] = (word >> 16) & 0xff;
+            u8_array[offset++] = (word >> 8) & 0xff;
+            u8_array[offset++] = word & 0xff;
+        }
+        return u8_array.subarray(0, wordArray.sigBytes);
     }
 
     // head: | 8 Bit Unused | 8 Bit Type | 16 Bit Length ｜
@@ -215,6 +232,17 @@ define(function (require) {
                         return;
                     }
                     var body = data.subarray(headSize, l)
+
+                    // Decrypt
+                    var iv = window.btoa(String.fromCharCode(...body.subarray(0, 16)))
+                    var ciphertext = window.btoa(String.fromCharCode(...body.subarray(16)))
+                    var options = {
+                        iv: CryptoJS.enc.Base64.parse(iv),
+                        mode: CryptoJS.mode.CFB,
+                        padding: CryptoJS.pad.NoPadding
+                    };
+                    var plaintext = CryptoJS.AES.decrypt(ciphertext, secretKey, options);
+                    body = wordArrayToUint8Array(plaintext)
 
                     // slice
                     var mid = body.subarray(0, 16)
