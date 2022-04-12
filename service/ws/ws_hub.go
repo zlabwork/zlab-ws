@@ -40,6 +40,10 @@ func NewHub(repo app.RepoFace) *Hub {
 	}
 }
 
+func (h *Hub) GetClientsNumber() int {
+	return len(h.clients)
+}
+
 func (h *Hub) Run() {
 
 	for {
@@ -61,8 +65,6 @@ func (h *Hub) Run() {
 			msgId := hex.EncodeToString(message[4:20])
 			msgSender := int64(binary.BigEndian.Uint64(message[12:20]))
 			msgReceiver := int64(binary.BigEndian.Uint64(message[20:28]))
-			// msgLength := binary.BigEndian.Uint16(message[2:4])
-			// msgBody := string(message[28:])
 
 			// TODO :: send to group or channel
 

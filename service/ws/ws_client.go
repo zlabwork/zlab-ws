@@ -65,7 +65,7 @@ type Client struct {
 	// user id
 	id int64
 
-	// secret key
+	// secret key TODO: delete unused
 	key []byte
 
 	// AES cipher.Block
@@ -81,6 +81,7 @@ func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
+		log.Println(fmt.Sprintf("off line, client id: %d", c.id))
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -97,6 +98,10 @@ func (c *Client) readPump() {
 
 		// 2. Message Decryption
 		msg, err := decrypt(c.block, data[headSize:])
+		if err != nil {
+			log.Println("error: decrypt the message")
+			break
+		}
 		copy(data[headSize:], msg)
 
 		// 3. switch
