@@ -74,5 +74,23 @@ copy(bs, bs1)
 bytes.Split(bs, []byte{0x1F})
 ```
 
+
 ## TODO LIST
 1. int64 js 不能正确解析问题
+
+
+## Tools
+[在线流程图思维导图](https://www.processon.com)  
+
+
+## Docs
+[从0到1：微信后台系统的演进之路](https://mp.weixin.qq.com/s/fMF_FjcdLiXc_JVmf4fl0w)  
+[一套海量在线用户的移动端IM架构设计实践分享](http://www.52im.net/thread-812-1-1.html)  
+[京东客服即时通讯系统的技术架构演进历程](http://www.52im.net/thread-152-1-1.html)  
+[移动社交的即时通讯软件是基于怎样的技术架构](https://www.zhihu.com/question/20458376)  
+[浅谈聊天系统架构设计](https://www.isolves.com/it/cxkf/jiagou/2020-12-22/34719.html)
+[如何设计一个亿级消息量的 IM 系统](https://xie.infoq.cn/article/19e95a78e2f5389588debfb1c)  
+[现代IM系统中的消息系统架构 - 架构篇](https://developer.aliyun.com/article/698301)  
+[现代IM系统中的消息系统架构 - 实现篇](https://developer.aliyun.com/article/710363)  
+[一套亿级用户的IM架构技术干货(上篇)：整体架构、服务拆分等](https://zhuanlan.zhihu.com/p/357302917)  
+[MQTT协议](https://www.runoob.com/w3cnote/mqtt-intro.html)  
