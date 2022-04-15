@@ -85,7 +85,6 @@ bytes.Split(bs, []byte{0x1F})
 
 ## Docs
 [从0到1：微信后台系统的演进之路](https://mp.weixin.qq.com/s/fMF_FjcdLiXc_JVmf4fl0w)  
-[一套海量在线用户的移动端IM架构设计实践分享](http://www.52im.net/thread-812-1-1.html)  
 [京东客服即时通讯系统的技术架构演进历程](http://www.52im.net/thread-152-1-1.html)  
 [移动社交的即时通讯软件是基于怎样的技术架构](https://www.zhihu.com/question/20458376)  
 [浅谈聊天系统架构设计](https://www.isolves.com/it/cxkf/jiagou/2020-12-22/34719.html)

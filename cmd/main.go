@@ -4,6 +4,8 @@ import (
 	"app"
 	"app/restful"
 	"app/service"
+	"app/service/broker"
+	"app/service/business"
 	"flag"
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v2"
@@ -37,32 +39,47 @@ func main() {
 
 	// params
 	var wait time.Duration
+	var module string
 	var addr = flag.String("addr", ":8080", "http service address")
-	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.StringVar(&module, "module", "", "module name - e.g. broker or business")
+	flag.DurationVar(&wait, "timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.Parse()
 	if len(os.Getenv("APP_PORT")) > 0 {
 		*addr = ":" + os.Getenv("APP_PORT")
 	}
 
 	// service
-	srv, err := service.NewService()
-	if err != nil {
-		log.Fatal(err)
-	}
-	srv.Run()
+	switch module {
 
-	http.HandleFunc("/", restful.DefaultHandler)
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		srv.ServeWs(w, r)
-	})
+	case "broker":
+		broker.Main()
+		log.Println("Broker is started")
 
-	// Run our server in a goroutine so that it doesn't block.
-	go func() {
-		if err := http.ListenAndServe(*addr, nil); err != nil {
-			log.Fatal("ListenAndServe: ", err)
+	case "business":
+		business.Main()
+		log.Println("Business is started")
+
+	default:
+		srv, err := service.NewService()
+		if err != nil {
+			log.Fatal(err)
 		}
-	}()
-	app.Banner("Service port :" + os.Getenv("APP_PORT"))
-	log.Println("the service is started")
+		srv.Run()
+
+		http.HandleFunc("/", restful.DefaultHandler)
+		http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+			srv.ServeWs(w, r)
+		})
+
+		// Run our server in a goroutine so that it doesn't block.
+		go func() {
+			if err := http.ListenAndServe(*addr, nil); err != nil {
+				log.Fatal("ListenAndServe: ", err)
+			}
+		}()
+		app.Banner("Service port :" + os.Getenv("APP_PORT"))
+		log.Println("Service is started")
+	}
 
 	c := make(chan os.Signal, 1)
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
