@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option go_package = "grpc/forward";
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.forward";
+option java_outer_classname = "Forward";
+
+package forward;
+
+// The forwarding service definition.
+service Forwarding {
+    rpc SendMessage (MsgRequest) returns (MsgReply) {}
+}
+
+// The request message
+message MsgRequest {
+    bytes payload = 1;
+}
+
+// The response message
+message MsgReply {
+    int32 code = 1;
+    string message = 2;
+}

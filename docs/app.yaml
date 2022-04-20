@@ -7,4 +7,5 @@ access:
 base:
   mq:
     - 127.0.0.1:9092
+  rpcHost: 127.0.0.1:50051
   logDir: /var/zlabms

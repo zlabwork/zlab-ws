@@ -59,18 +59,24 @@ func (br *Broker) serveWs(w http.ResponseWriter, r *http.Request) {
 
 func (br *Broker) Run(addr *string) {
 
-	go br.hub.Run()
-	go br.information()
-
 	http.HandleFunc("/", restful.DefaultHandler)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		br.serveWs(w, r)
 	})
 
 	// Run our server in a goroutine so that it doesn't block.
+	go br.hub.Run()
+	go br.information()
+
+	// websocket
 	go func() {
 		if err := http.ListenAndServe(*addr, nil); err != nil {
 			log.Fatal("ListenAndServe: ", err)
 		}
+	}()
+
+	// grpc server
+	go func() {
+		broker.StartRPC()
 	}()
 }
