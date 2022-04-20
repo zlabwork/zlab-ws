@@ -1,15 +1,13 @@
 package broker
 
 import (
+	"app"
 	"github.com/Shopify/sarama"
-	"os"
-	"strings"
 )
 
 func getProducer(config *sarama.Config) sarama.AsyncProducer {
 
-	address := strings.Split(os.Getenv("KAFKA_ADDRS"), ",")
-	producer, err := sarama.NewAsyncProducer(address, config)
+	producer, err := sarama.NewAsyncProducer(app.Yaml.Base.MQ, config)
 	if err != nil {
 		panic(err)
 	}

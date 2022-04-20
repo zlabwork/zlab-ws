@@ -31,5 +31,8 @@ func NewBusinessService() (*Business, error) {
 }
 
 func (bu *Business) Run() {
-	business.Main()
+
+	go func() {
+		business.Main()
+	}()
 }

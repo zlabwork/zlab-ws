@@ -1,16 +1,14 @@
 package business
 
 import (
+	"app"
 	"github.com/Shopify/sarama"
 	"log"
-	"os"
-	"strings"
 )
 
 func consumer(config *sarama.Config) {
 
-	address := strings.Split(os.Getenv("KAFKA_ADDRS"), ",")
-	consumer, err := sarama.NewConsumer(address, config)
+	consumer, err := sarama.NewConsumer(app.Yaml.Base.MQ, config)
 	if err != nil {
 		panic(err)
 	}
@@ -20,8 +18,6 @@ func consumer(config *sarama.Config) {
 			log.Fatalln(err)
 		}
 	}()
-
-	log.Println("Consumer started")
 
 	partitionConsumer, err := consumer.ConsumePartition("message", 0, sarama.OffsetNewest)
 	if err != nil {
