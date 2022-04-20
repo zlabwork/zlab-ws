@@ -3,7 +3,6 @@ package main
 import (
 	"app"
 	"app/service"
-	"app/service/broker"
 	"app/service/business"
 	"flag"
 	"fmt"
@@ -66,10 +65,6 @@ func main() {
 	case "business":
 		business.Main()
 		log.Println("Business is started")
-
-	case "broker":
-		broker.Main()
-		log.Println("Broker is started")
 
 	default:
 		srv, err := service.NewBrokerService()

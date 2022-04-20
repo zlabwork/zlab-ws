@@ -3,9 +3,9 @@ package service
 import (
 	"app"
 	"app/restful"
+	"app/service/broker"
 	"app/service/redis"
 	"app/service/repository/mysql"
-	"app/service/ws"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -16,7 +16,7 @@ import (
 type Container struct {
 	cache app.CacheFace
 	repo  app.RepoFace
-	hub   *ws.Hub
+	hub   *broker.Hub
 }
 
 func NewBrokerService() (*Container, error) {
@@ -29,7 +29,7 @@ func NewBrokerService() (*Container, error) {
 	if err != nil {
 		return nil, err
 	}
-	hub := ws.NewHub(repo)
+	hub := broker.NewHub(repo)
 
 	return &Container{
 		cache: cs,
@@ -60,7 +60,7 @@ func (co *Container) information() {
 }
 
 func (co *Container) serveWs(w http.ResponseWriter, r *http.Request) {
-	ws.ServeWs(co.hub, co.cache, co.repo, w, r)
+	broker.ServeWs(co.hub, co.cache, co.repo, w, r)
 }
 
 func (co *Container) Run(addr *string) {

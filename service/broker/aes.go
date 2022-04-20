@@ -1,4 +1,4 @@
-package ws
+package broker
 
 import (
 	"crypto/aes"
