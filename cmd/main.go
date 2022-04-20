@@ -52,7 +52,7 @@ func main() {
 	var wait time.Duration
 	var module string
 	var addr = flag.String("addr", ":8080", "http service address")
-	flag.StringVar(&module, "module", "", "module name - e.g. broker or business")
+	flag.StringVar(&module, "m", "", "module name - e.g. -m broker, -m business or -m all")
 	flag.DurationVar(&wait, "timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 	if len(os.Getenv("APP_PORT")) > 0 {
@@ -75,12 +75,21 @@ func main() {
 		}
 		srv.Run(addr)
 
-	default:
-		srv, err := service.NewBrokerService()
+	case "all":
+		bus, err := service.NewBusinessService()
 		if err != nil {
 			log.Fatal(err)
 		}
-		srv.Run(addr)
+		bus.Run()
+		bro, err := service.NewBrokerService()
+		if err != nil {
+			log.Fatal(err)
+		}
+		bro.Run(addr)
+
+	default:
+		fmt.Println("please use -m")
+		os.Exit(0)
 	}
 	app.Banner("service is started")
 
