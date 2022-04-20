@@ -3,7 +3,6 @@ package main
 import (
 	"app"
 	"app/service"
-	"app/service/business"
 	"flag"
 	"fmt"
 	"github.com/joho/godotenv"
@@ -63,8 +62,18 @@ func main() {
 	// service
 	switch module {
 	case "business":
-		business.Main()
-		log.Println("Business is started")
+		srv, err := service.NewBusinessService()
+		if err != nil {
+			log.Fatal(err)
+		}
+		srv.Run()
+
+	case "broker":
+		srv, err := service.NewBrokerService()
+		if err != nil {
+			log.Fatal(err)
+		}
+		srv.Run(addr)
 
 	default:
 		srv, err := service.NewBrokerService()

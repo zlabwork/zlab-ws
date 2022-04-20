@@ -5,17 +5,13 @@
 package broker
 
 import (
-	"app"
-	"encoding/binary"
-	"encoding/hex"
-	"time"
+	"github.com/Shopify/sarama"
+	"log"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
-	// Database repository
-	repo app.RepoFace
 
 	// Registered clients.
 	clients map[int64]*Client
@@ -30,9 +26,8 @@ type Hub struct {
 	unregister chan *Client
 }
 
-func NewHub(repo app.RepoFace) *Hub {
+func NewHub() *Hub {
 	return &Hub{
-		repo:       repo,
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
@@ -46,9 +41,16 @@ func (h *Hub) GetClientsNumber() int {
 
 func (h *Hub) Run() {
 
+	var enqueued, producerErrors int
+	producer := getProducer(nil)
+	defer func() {
+		if err := producer.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
+
 	for {
 		select {
-
 		case client := <-h.register:
 			h.clients[client.id] = client
 
@@ -59,38 +61,12 @@ func (h *Hub) Run() {
 			}
 
 		case message := <-h.broadcast:
-			now := time.Now()
+			producer.Input() <- &sarama.ProducerMessage{Topic: "message", Key: nil, Value: sarama.ByteEncoder(message)}
+			enqueued++
 
-			msgType := message[1]
-			msgId := hex.EncodeToString(message[4:20])
-			msgSender := int64(binary.BigEndian.Uint64(message[12:20]))
-			msgReceiver := int64(binary.BigEndian.Uint64(message[20:28]))
-
-			// TODO :: send to group or channel
-
-			// Save to database
-			go func() {
-				if h.repo.CreateLogs(msgType, msgId, msgSender, msgReceiver, message[28:], now) != nil {
-					return
-				}
-			}()
-
-			// send to user
-			cli, ok := h.clients[msgReceiver]
-			if !ok {
-				go func() {
-					if h.repo.CreateTodo(msgType, msgId, msgSender, msgReceiver, message[28:], now) != nil {
-						return
-					}
-				}()
-				continue
-			}
-			select {
-			case cli.send <- message:
-			default:
-				close(cli.send)
-				delete(h.clients, cli.id)
-			}
+		case err := <-producer.Errors():
+			log.Println("Failed to produce message", err)
+			producerErrors++
 		}
 	}
 

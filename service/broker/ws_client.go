@@ -52,8 +52,6 @@ var upgrader = websocket.Upgrader{
 type Client struct {
 	cache app.CacheFace
 
-	repo app.RepoFace
-
 	hub *Hub
 
 	// The websocket connection.
@@ -112,7 +110,6 @@ func (c *Client) readPump() {
 				break
 			}
 			c.hub.register <- c
-			c.sendCachedData()
 
 		default:
 			// TODO: 处理粘包问题
@@ -189,34 +186,6 @@ func (c *Client) authorize(msg []byte) bool {
 	return true
 }
 
-// send message which cached in database
-func (c *Client) sendCachedData() {
-	data, err := c.repo.GetTodo(c.id)
-	if err != nil {
-		return
-	}
-
-	for _, item := range data {
-		rev := make([]byte, 8)
-		binary.BigEndian.PutUint64(rev, uint64(item.Receiver))
-
-		mid, err := hex.DecodeString(item.Mid)
-		if err != nil {
-			continue
-		}
-
-		b := make([]byte, 28+len(item.Data))
-		copy(b[1:2], []byte{item.Type})
-		copy(b[4:20], mid)
-		copy(b[20:28], rev)
-		copy(b[28:], item.Data)
-
-		c.send <- b
-	}
-	// Delete message cached
-	c.repo.DeleteTodo(c.id)
-}
-
 // Message Encryption
 func (c *Client) encrypt(message []byte) *[]byte {
 	ciphertext, err := encrypt(c.block, message[headSize:])
@@ -234,13 +203,13 @@ func (c *Client) encrypt(message []byte) *[]byte {
 }
 
 // ServeWs handles websocket requests from the peer.
-func ServeWs(hub *Hub, cache app.CacheFace, repo app.RepoFace, w http.ResponseWriter, r *http.Request) {
+func ServeWs(hub *Hub, cache app.CacheFace, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	client := &Client{cache: cache, repo: repo, hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{cache: cache, hub: hub, conn: conn, send: make(chan []byte, 256)}
 
 	// TODO: dev test, need to Delete
 	b, _ := hex.DecodeString("ffffffffffffffffffffffffffffffff")

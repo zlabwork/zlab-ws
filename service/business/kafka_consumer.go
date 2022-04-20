@@ -4,11 +4,10 @@ import (
 	"github.com/Shopify/sarama"
 	"log"
 	"os"
-	"os/signal"
 	"strings"
 )
 
-func Consumer(topic string, config *sarama.Config) {
+func consumer(config *sarama.Config) {
 
 	address := strings.Split(os.Getenv("KAFKA_ADDRS"), ",")
 	consumer, err := sarama.NewConsumer(address, config)
@@ -24,7 +23,7 @@ func Consumer(topic string, config *sarama.Config) {
 
 	log.Println("Consumer started")
 
-	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetNewest)
+	partitionConsumer, err := consumer.ConsumePartition("message", 0, sarama.OffsetNewest)
 	if err != nil {
 		panic(err)
 	}
@@ -35,19 +34,14 @@ func Consumer(topic string, config *sarama.Config) {
 		}
 	}()
 
-	// Trap SIGINT to trigger a shutdown.
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt)
-
 	consumed := 0
-ConsumerLoop:
 	for {
 		select {
 		case msg := <-partitionConsumer.Messages():
-			log.Printf("Consumed message offset %d, %s\n", msg.Offset, string(msg.Value))
+			log.Printf("Consumed message offset %d\n", msg.Offset)
+			log.Println(msg.Value)
 			consumed++
-		case <-signals:
-			break ConsumerLoop
+
 		}
 	}
 

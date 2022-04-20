@@ -5,7 +5,6 @@ import (
 	"app/restful"
 	"app/service/broker"
 	"app/service/redis"
-	"app/service/repository/mysql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -13,32 +12,27 @@ import (
 	"time"
 )
 
-type Container struct {
+type Broker struct {
 	cache app.CacheFace
 	repo  app.RepoFace
 	hub   *broker.Hub
 }
 
-func NewBrokerService() (*Container, error) {
+func NewBrokerService() (*Broker, error) {
 
 	cs, err := redis.NewCacheRepository()
 	if err != nil {
 		return nil, err
 	}
-	repo, err := mysql.NewRepoFace()
-	if err != nil {
-		return nil, err
-	}
-	hub := broker.NewHub(repo)
+	hub := broker.NewHub()
 
-	return &Container{
+	return &Broker{
 		cache: cs,
-		repo:  repo,
 		hub:   hub,
 	}, nil
 }
 
-func (co *Container) information() {
+func (br *Broker) information() {
 
 	type info struct {
 		Node    string `json:"node"`
@@ -51,7 +45,7 @@ func (co *Container) information() {
 	for {
 		<-ticker.C
 
-		bs, err := json.Marshal(&info{Node: os.Getenv("APP_NODE"), Time: time.Now().UTC().Unix(), Clients: co.hub.GetClientsNumber()})
+		bs, err := json.Marshal(&info{Node: os.Getenv("APP_NODE"), Time: time.Now().UTC().Unix(), Clients: br.hub.GetClientsNumber()})
 		if err != nil {
 			return
 		}
@@ -59,18 +53,18 @@ func (co *Container) information() {
 	}
 }
 
-func (co *Container) serveWs(w http.ResponseWriter, r *http.Request) {
-	broker.ServeWs(co.hub, co.cache, co.repo, w, r)
+func (br *Broker) serveWs(w http.ResponseWriter, r *http.Request) {
+	broker.ServeWs(br.hub, br.cache, w, r)
 }
 
-func (co *Container) Run(addr *string) {
+func (br *Broker) Run(addr *string) {
 
-	go co.hub.Run()
-	go co.information()
+	go br.hub.Run()
+	go br.information()
 
 	http.HandleFunc("/", restful.DefaultHandler)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		co.serveWs(w, r)
+		br.serveWs(w, r)
 	})
 
 	// Run our server in a goroutine so that it doesn't block.
