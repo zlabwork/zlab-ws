@@ -6,16 +6,17 @@ import (
 	"app/service/broker"
 	"app/service/business"
 	"flag"
+	"fmt"
 	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/signal"
 	"time"
 )
 
-func main() {
+func init() {
 
 	// env
 	err := godotenv.Load("../.env")
@@ -32,8 +33,22 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// logs
+	_ = os.MkdirAll(app.Yaml.Base.LogDir, 0666)
+	f, err := os.OpenFile(app.Yaml.Base.LogDir+string(os.PathSeparator)+"logs.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.SetOutput(os.Stdout)
+	} else {
+		log.SetOutput(f)
+	}
+	// log.SetFormatter(&log.JSONFormatter{})
+	log.SetFormatter(&log.TextFormatter{})
+
 	// libs
 	app.Libs = app.NewLibs()
+}
+
+func main() {
 
 	// params
 	var wait time.Duration
@@ -76,7 +91,7 @@ func main() {
 	// Optionally, you could run srv.Shutdown in a goroutine and block on
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
+	fmt.Println("logs at " + app.Yaml.Base.LogDir)
 	log.Println("shutting down")
 	os.Exit(0)
-
 }

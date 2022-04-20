@@ -3,3 +3,6 @@
 # access
 access:
   - [ "ACCESS-KEY-ID","ACCESS-KEY-SECRET" ]
+
+base:
+  logDir: /var/zlabms
