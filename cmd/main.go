@@ -2,7 +2,6 @@ package main
 
 import (
 	"app"
-	"app/restful"
 	"app/service"
 	"app/service/broker"
 	"app/service/business"
@@ -11,7 +10,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"time"
@@ -50,36 +48,22 @@ func main() {
 
 	// service
 	switch module {
+	case "business":
+		business.Main()
+		log.Println("Business is started")
 
 	case "broker":
 		broker.Main()
 		log.Println("Broker is started")
 
-	case "business":
-		business.Main()
-		log.Println("Business is started")
-
 	default:
-		srv, err := service.NewService()
+		srv, err := service.NewBrokerService()
 		if err != nil {
 			log.Fatal(err)
 		}
-		srv.Run()
-
-		http.HandleFunc("/", restful.DefaultHandler)
-		http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-			srv.ServeWs(w, r)
-		})
-
-		// Run our server in a goroutine so that it doesn't block.
-		go func() {
-			if err := http.ListenAndServe(*addr, nil); err != nil {
-				log.Fatal("ListenAndServe: ", err)
-			}
-		}()
-		app.Banner("Service port :" + os.Getenv("APP_PORT"))
-		log.Println("Service is started")
+		srv.Run(addr)
 	}
+	app.Banner("service is started")
 
 	c := make(chan os.Signal, 1)
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)

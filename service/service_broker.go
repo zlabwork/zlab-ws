@@ -2,6 +2,7 @@ package service
 
 import (
 	"app"
+	"app/restful"
 	"app/service/redis"
 	"app/service/repository/mysql"
 	"app/service/ws"
@@ -18,7 +19,7 @@ type Container struct {
 	hub   *ws.Hub
 }
 
-func NewService() (*Container, error) {
+func NewBrokerService() (*Container, error) {
 
 	cs, err := redis.NewCacheRepository()
 	if err != nil {
@@ -58,11 +59,24 @@ func (co *Container) information() {
 	}
 }
 
-func (co *Container) Run() {
-	go co.hub.Run()
-	go co.information()
+func (co *Container) serveWs(w http.ResponseWriter, r *http.Request) {
+	ws.ServeWs(co.hub, co.cache, co.repo, w, r)
 }
 
-func (co *Container) ServeWs(w http.ResponseWriter, r *http.Request) {
-	ws.ServeWs(co.hub, co.cache, co.repo, w, r)
+func (co *Container) Run(addr *string) {
+
+	go co.hub.Run()
+	go co.information()
+
+	http.HandleFunc("/", restful.DefaultHandler)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		co.serveWs(w, r)
+	})
+
+	// Run our server in a goroutine so that it doesn't block.
+	go func() {
+		if err := http.ListenAndServe(*addr, nil); err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
+	}()
 }
