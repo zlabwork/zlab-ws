@@ -20,6 +20,7 @@ define(function (require) {
     var msg = document.getElementById("msg");
     var log = document.getElementById("log");
     var secretKey = CryptoJS.enc.Hex.parse("ffffffffffffffffffffffffffffffff")
+    var seq = 100 // TODO::store
 
     function getQuery(args) {
         var query = window.location.search.substring(1);
@@ -33,17 +34,8 @@ define(function (require) {
         return (false);
     }
 
-    // 7 bit + 41 bit + 16 bit
-    function getSequenceId(isPrivate) {
-        var s = 0 // TODO: 7 bit
-        if (isPrivate === true) {
-            s = 0b0100000
-        } else {
-            s = 0b1000000
-        }
-        let t = new Date().getTime() - epoch
-        let n = Math.floor(Math.random() * 65535);
-        return Long.fromValue(s).shiftLeft(41).or(t).shiftLeft(16).or(n)
+    function getSequenceId() {
+        return seq++
     }
 
     function getRandomBytes(len) {
@@ -111,14 +103,14 @@ define(function (require) {
 
     // head: | 8 Bit Unused | 8 Bit Type | 16 Bit Length ｜
     // body: | 64 Bit SequenceID | 64 Bit SenderID | 64 Bit ReceiverID | Data ｜
-    function messagePackage(type, sequence, sender, receiver, data) {
+    function messagePackage(type, sequence, send, session, data) {
 
         var i = 0
 
         // 1. Converts to bytes
+        session = Long.fromValue(session).toBytesBE()
         sequence = Long.fromValue(sequence).toBytesBE()
-        sender = Long.fromValue(sender).toBytesBE()
-        receiver = Long.fromValue(receiver).toBytesBE()
+        send = Long.fromValue(send).toBytesBE()
 
         // 2. string to bytes
         let bodyData = new TextEncoder().encode(data);
@@ -133,19 +125,19 @@ define(function (require) {
         //     bs[i + 2] = sizeBytes[i + 6];
         // }
 
-        // 4. sequence
+        // 4. session
+        for (i = 0; i < session.length; i++) {
+            bs[i + headSize] = session[i];
+        }
+
+        // 5. sequence
         for (i = 0; i < sequence.length; i++) {
-            bs[i + headSize] = sequence[i];
+            bs[i + headSize + 8] = sequence[i];
         }
 
-        // 5. sender
-        for (i = 0; i < sender.length; i++) {
-            bs[i + headSize + 8] = sender[i];
-        }
-
-        // 6. receiver
-        for (i = 0; i < receiver.length; i++) {
-            bs[i + headSize + 16] = receiver[i];
+        // 6. sender
+        for (i = 0; i < send.length; i++) {
+            bs[i + headSize + 16] = send[i];
         }
 
         // 7. data
@@ -215,8 +207,8 @@ define(function (require) {
             let sequence = getSequenceId(true)
             let data = {
                 "id": getUuid(),
-                "sender": getUserIdSender(),
-                "receiver": getUserIdReceiver(),
+                "send": getUserIdSender(),
+                "sid": getUserIdReceiver(),
                 "text": msg.value,
                 "time": new Date().getTime(),
             }
@@ -226,7 +218,7 @@ define(function (require) {
             item.innerHTML = '<div class="textSend">' + msg.value + '</div>';
             appendLog(item);
 
-            let bs = messagePackage(msgTypeText, sequence, data.sender, data.receiver, msg.value)
+            let bs = messagePackage(msgTypeText, sequence, data.send, data.sid, msg.value)
             conn.send(bs);
             msg.value = "";
             return false;
@@ -270,9 +262,9 @@ define(function (require) {
                     body = wordArrayToUint8Array(plaintext)
 
                     // slice
-                    var mid = body.subarray(0, 16)
-                    var send = Long.fromBytes(body.subarray(8, 16)).toString()
-                    var recv = Long.fromBytes(body.subarray(16, bodyHeadSize)).toString()
+                    var mid = body.subarray(8, bodyHeadSize)
+                    var send = Long.fromBytes(body.subarray(16, bodyHeadSize)).toString()
+                    var recv = Long.fromBytes(body.subarray(0, 8)).toString()
                     var content = body.subarray(bodyHeadSize, body.byteLength)
                     var text = new TextDecoder().decode(content)
 
