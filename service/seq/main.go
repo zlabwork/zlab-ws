@@ -1,12 +1,12 @@
 package seq
 
 import (
-	"app/service/redis"
 	"app/service/repository/mysql"
+	"app/service/repository/redis"
 	"context"
 )
 
-// TODO:: SEQ集群
+// TODO:: SEQ集群 分布式锁
 // @docs https://mp.weixin.qq.com/s/JqIJupVKUNuQYIDDxRtfqA
 
 // 步长机制
