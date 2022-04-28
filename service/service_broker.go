@@ -4,7 +4,7 @@ import (
 	"app"
 	"app/restful"
 	"app/service/broker"
-	"app/service/redis"
+	"app/service/repository/redis"
 	"encoding/json"
 	"log"
 	"net/http"

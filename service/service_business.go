@@ -3,8 +3,8 @@ package service
 import (
 	"app"
 	"app/service/business"
-	"app/service/redis"
 	"app/service/repository/mysql"
+	"app/service/repository/redis"
 )
 
 type Business struct {
