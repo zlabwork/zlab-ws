@@ -1,8 +1,12 @@
 package cache
 
 import (
+	"app"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 )
+
+var _handle *handle
 
 type handle struct {
 	Conn *redis.Client
@@ -33,3 +37,21 @@ func ConnectRedis(dsn string) (*handle, error) {
 
 // Cache
 // https://redis.uptrace.dev/guide/go-redis-cache.html
+
+func getHandle() (*handle, error) {
+
+	if _handle != nil {
+		return _handle, nil
+	}
+
+	c := app.Yaml.Cache
+	name := "0"
+	dsn := fmt.Sprintf("redis://%s:%d/%s", c.Host, c.Port, name)
+
+	var err error
+	_handle, err = ConnectRedis(dsn)
+	if err != nil {
+		return nil, err
+	}
+	return _handle, nil
+}

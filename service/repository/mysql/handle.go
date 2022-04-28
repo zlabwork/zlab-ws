@@ -1,10 +1,13 @@
 package mysql
 
 import (
+	"app"
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+var _handle *handle
 
 type handle struct {
 	Conn *sql.DB
@@ -46,4 +49,21 @@ func (db *handle) Drop(database string) error {
 	q := fmt.Sprintf("DROP DATABASE %s;", database)
 	_, err := db.Conn.Exec(q)
 	return err
+}
+
+func getHandle() (*handle, error) {
+
+	if _handle != nil {
+		return _handle, nil
+	}
+
+	c := app.Yaml.Db.Mysql
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci", c.User, c.Pass, c.Host, c.Port, c.Name)
+
+	var err error
+	_handle, err = ConnectMySQL(dsn)
+	if err != nil {
+		return nil, err
+	}
+	return _handle, nil
 }
