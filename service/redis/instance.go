@@ -1,14 +1,15 @@
 package redis
 
 import (
+	"app"
 	"fmt"
-	"os"
 )
 
 func getHandle() (*handle, error) {
-	host := os.Getenv("REDIS_HOST")
-	port := os.Getenv("REDIS_PORT")
+
+	host := app.Yaml.Db.Redis.Host
+	port := app.Yaml.Db.Redis.Port
 	name := "0"
-	dsn := fmt.Sprintf("redis://%s:%s/%s", host, port, name)
+	dsn := fmt.Sprintf("redis://%s:%d/%s", host, port, name)
 	return ConnectRedis(dsn)
 }

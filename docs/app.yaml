@@ -9,3 +9,21 @@ base:
     - 127.0.0.1:9092
   rpcHost: 127.0.0.1:50051
   logDir: /var/zlabms
+
+# config for cache
+cache:
+  host: 127.0.0.1
+  port: 6379
+
+# config for database
+db:
+  redis:
+    host: 127.0.0.1
+    port: 6379
+
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    user:
+    pass:
+    name:
