@@ -1,5 +1,6 @@
 package business
 
-func Main() {
-	consumer(nil)
+func Main(c chan *[]byte) {
+	// todo : kafka config
+	consumer(c, nil)
 }

@@ -5,11 +5,13 @@ import (
 	"app/service/business"
 	"app/service/cache"
 	"app/service/repository/mysql"
+	"fmt"
 )
 
 type Business struct {
 	message app.RepoMessage
 	session app.CacheSession
+	data    chan *[]byte
 }
 
 func NewBusinessService() (*Business, error) {
@@ -32,12 +34,23 @@ func NewBusinessService() (*Business, error) {
 	return &Business{
 		message: msg,
 		session: cache,
+		data:    make(chan *[]byte),
 	}, nil
 }
 
 func (bu *Business) Run() {
 
 	go func() {
-		business.Main()
+		business.Main(bu.data)
 	}()
+
+	go func() {
+		for {
+			select {
+			case m := <-bu.data:
+				fmt.Println("processing:", m)
+			}
+		}
+	}()
+
 }

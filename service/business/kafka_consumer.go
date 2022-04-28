@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func consumer(config *sarama.Config) {
+func consumer(ch chan *[]byte, config *sarama.Config) {
 
 	consumer, err := sarama.NewConsumer(app.Yaml.Base.MQ, config)
 	if err != nil {
@@ -34,8 +34,8 @@ func consumer(config *sarama.Config) {
 	for {
 		select {
 		case msg := <-partitionConsumer.Messages():
-			log.Printf("Consumed message offset %d\n", msg.Offset)
-			log.Println(msg.Value)
+			// log.Printf("Consumed message offset %d\n", msg.Offset)
+			ch <- &msg.Value
 			consumed++
 
 		}
