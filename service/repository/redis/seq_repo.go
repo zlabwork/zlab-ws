@@ -22,11 +22,6 @@ func NewSeqRepository() (*SeqRepository, error) {
 	}, nil
 }
 
-func (sr *SeqRepository) Close() error {
-
-	return sr.Conn.Close()
-}
-
 func (sr *SeqRepository) GetSeqId(ctx context.Context, userId int64) (uint64, error) {
 	k := "SEQ:" + strconv.FormatInt(userId, 10)
 	cmd := sr.Conn.Incr(ctx, k)

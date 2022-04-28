@@ -3,30 +3,35 @@ package service
 import (
 	"app"
 	"app/service/business"
+	"app/service/cache"
 	"app/service/repository/mysql"
-	"app/service/repository/redis"
 )
 
 type Business struct {
-	cache app.CacheFace
-	repo  app.RepoFace
+	message app.RepoMessage
+	session app.CacheSession
 }
 
 func NewBusinessService() (*Business, error) {
 
-	cs, err := redis.NewCacheRepository()
+	repo, err := mysql.NewSessionRepository()
 	if err != nil {
 		return nil, err
 	}
 
-	repo, err := mysql.NewRepoFace()
+	cache, err := cache.NewSessionRepository(repo)
+	if err != nil {
+		return nil, err
+	}
+
+	msg, err := mysql.NewMessageRepository()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Business{
-		cache: cs,
-		repo:  repo,
+		message: msg,
+		session: cache,
 	}, nil
 }
 

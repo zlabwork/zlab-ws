@@ -50,7 +50,7 @@ var upgrader = websocket.Upgrader{
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	cache app.CacheFace
+	cache app.CacheToken
 
 	hub *Hub
 
@@ -203,7 +203,7 @@ func (c *Client) encrypt(message []byte) *[]byte {
 }
 
 // ServeWs handles websocket requests from the peer.
-func ServeWs(hub *Hub, cache app.CacheFace, w http.ResponseWriter, r *http.Request) {
+func ServeWs(hub *Hub, cache app.CacheToken, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)

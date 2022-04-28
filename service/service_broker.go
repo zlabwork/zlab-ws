@@ -4,7 +4,7 @@ import (
 	"app"
 	"app/restful"
 	"app/service/broker"
-	"app/service/repository/redis"
+	"app/service/cache"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -13,14 +13,14 @@ import (
 )
 
 type Broker struct {
-	cache app.CacheFace
-	repo  app.RepoFace
+	cache app.CacheToken
+	repo  app.RepoMessage
 	hub   *broker.Hub
 }
 
 func NewBrokerService() (*Broker, error) {
 
-	cs, err := redis.NewCacheRepository()
+	cs, err := cache.NewTokenRepository()
 	if err != nil {
 		return nil, err
 	}

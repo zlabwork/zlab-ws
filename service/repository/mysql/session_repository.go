@@ -20,7 +20,7 @@ func NewSessionRepository() (*SessionRepository, error) {
 	return &SessionRepository{Conn: h.Conn}, nil
 }
 
-func (sr *SessionRepository) NewSUID(sid int64, userIds []int64) error {
+func (sr *SessionRepository) NewUID(sid int64, userIds []int64) error {
 
 	t := time.Now()
 
@@ -44,7 +44,7 @@ func (sr *SessionRepository) NewSUID(sid int64, userIds []int64) error {
 	return nil
 }
 
-func (sr *SessionRepository) SetSUID(sid int64, userIds []int64) error {
+func (sr *SessionRepository) SetUID(sid int64, userIds []int64) error {
 
 	t := time.Now()
 
@@ -68,7 +68,7 @@ func (sr *SessionRepository) SetSUID(sid int64, userIds []int64) error {
 	return nil
 }
 
-func (sr *SessionRepository) GetSUID(sid int64) ([]int64, error) {
+func (sr *SessionRepository) GetUID(sid int64) ([]int64, error) {
 
 	s := ""
 	row := sr.Conn.QueryRow("SELECT `uids` FROM `im_session` WHERE `id` = ? LIMIT 1", sid)

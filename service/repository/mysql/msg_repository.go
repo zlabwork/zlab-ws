@@ -6,20 +6,20 @@ import (
 	"time"
 )
 
-type RepoFace struct {
+type MessageRepository struct {
 	Conn *sql.DB
 }
 
-func NewRepoFace() (*RepoFace, error) {
+func NewMessageRepository() (*MessageRepository, error) {
 
 	h, err := getHandle()
 	if err != nil {
 		return nil, err
 	}
-	return &RepoFace{Conn: h.Conn}, nil
+	return &MessageRepository{Conn: h.Conn}, nil
 }
 
-func (rf *RepoFace) GetTodo(userId int64) ([]*app.RepoMsg, error) {
+func (rf *MessageRepository) GetTodo(userId int64) ([]*app.RepoMsg, error) {
 
 	// 1. Query
 	rows, err := rf.Conn.Query("SELECT `id`, `mid`, `type`, `sender`, `receiver`, `data`, `ctime` FROM `im_todo` WHERE `receiver` = ?", userId)
@@ -46,7 +46,7 @@ func (rf *RepoFace) GetTodo(userId int64) ([]*app.RepoMsg, error) {
 	return result, nil
 }
 
-func (rf *RepoFace) DeleteTodo(userId int64) error {
+func (rf *MessageRepository) DeleteTodo(userId int64) error {
 
 	stmt, err := rf.Conn.Prepare("DELETE FROM `im_todo` WHERE `receiver` = ?")
 	if err != nil {
@@ -58,7 +58,7 @@ func (rf *RepoFace) DeleteTodo(userId int64) error {
 	return nil
 }
 
-func (rf *RepoFace) CreateTodo(msgType uint8, msgId string, sender, receiver int64, body []byte, date time.Time) error {
+func (rf *MessageRepository) CreateTodo(msgType uint8, msgId string, sender, receiver int64, body []byte, date time.Time) error {
 
 	stmt, err := rf.Conn.Prepare("INSERT INTO `im_todo` (`mid`, `type`, `sender`, `receiver`, `data`, `ctime`) VALUES (?,?,?,?,?,?)")
 	if err != nil {
@@ -72,7 +72,7 @@ func (rf *RepoFace) CreateTodo(msgType uint8, msgId string, sender, receiver int
 	return nil
 }
 
-func (rf *RepoFace) CreateLogs(msgType uint8, msgId string, sender, receiver int64, body []byte, date time.Time) error {
+func (rf *MessageRepository) CreateLogs(msgType uint8, msgId string, sender, receiver int64, body []byte, date time.Time) error {
 
 	stmt, err := rf.Conn.Prepare("INSERT INTO `im_msg` (`mid`, `type`, `sender`, `receiver`, `data`, `ctime`) VALUES (?,?,?,?,?,?)")
 	if err != nil {
