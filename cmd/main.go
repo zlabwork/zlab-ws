@@ -46,15 +46,30 @@ func init() {
 	app.Libs = app.NewLibs()
 }
 
+func usage() {
+
+	fmt.Fprint(os.Stderr, "Usage of ", os.Args[0], ":\n")
+	flag.PrintDefaults()
+	fmt.Fprint(os.Stderr, "\n")
+}
+
 func main() {
 
 	// params
+	var help bool
 	var wait time.Duration
 	var module string
 	var addr = flag.String("addr", ":8080", "http service address")
+	flag.Usage = usage
+	flag.BoolVar(&help, "h", false, "help")
 	flag.StringVar(&module, "m", "", "module name - e.g. -m broker, -m business or -m all")
 	flag.DurationVar(&wait, "timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
+	if help {
+		usage()
+		os.Exit(1)
+	}
+
 	if len(os.Getenv("APP_PORT")) > 0 {
 		*addr = ":" + os.Getenv("APP_PORT")
 	}
@@ -88,8 +103,8 @@ func main() {
 		bro.Run(addr)
 
 	default:
-		fmt.Println("please use -m")
-		os.Exit(0)
+		usage()
+		os.Exit(1)
 	}
 	app.Banner("service is started")
 
