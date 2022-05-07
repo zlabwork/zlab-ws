@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 )
@@ -71,6 +72,12 @@ func (sr *SessionRepository) SetSessionUID(ctx context.Context, sid int64, userI
 	key := prefixSUID + strconv.FormatInt(sid, 10)
 	data := strings.Join(s, ",")
 	cmd := sr.Conn.Set(ctx, key, data, 0)
+
+	go func() {
+		if sr.repo.SetUID(sid, userIds) != nil {
+			log.Println("error when write to database, SetSessionUID")
+		}
+	}()
 	return cmd.Err()
 }
 
@@ -79,8 +86,20 @@ func (sr *SessionRepository) GetSessionUID(ctx context.Context, sid int64) ([]in
 
 	key := prefixSUID + strconv.FormatInt(sid, 10)
 	cmd := sr.Conn.Get(ctx, key)
-	s := strings.Split(cmd.Val(), ",")
 
+	// get from repo
+	if cmd.Err() != nil {
+		ids, err := sr.repo.GetUID(sid)
+		if err != nil {
+			return nil, err
+		}
+		go func() {
+			sr.SetSessionUID(ctx, sid, ids)
+		}()
+		return ids, err
+	}
+
+	s := strings.Split(cmd.Val(), ",")
 	var n []int64
 	for _, id := range s {
 		i, _ := strconv.ParseInt(id, 10, 64)

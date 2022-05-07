@@ -14,7 +14,7 @@ type CacheSession interface {
 	DelBrokerId(ctx context.Context, userId int64) error
 	SetBrokerId(ctx context.Context, userId int64, brokerId int64) error
 	GetBrokerId(ctx context.Context, userId int64) (int64, error)
-	SetSessionUID(ctx context.Context, sid int64, data []int64) error
+	SetSessionUID(ctx context.Context, sid int64, userIds []int64) error
 	GetSessionUID(ctx context.Context, sid int64) ([]int64, error)
 }
 
