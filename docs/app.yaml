@@ -8,6 +8,7 @@ base:
   mq:
     - 127.0.0.1:9092
   rpcHost: 127.0.0.1:50051
+  monitor: 127.0.0.1:50059
   logDir: /var/zlabms
 
 # config for cache

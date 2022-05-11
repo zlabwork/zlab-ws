@@ -9,6 +9,7 @@ type yaml struct {
 	Base struct {
 		MQ      []string `yaml:"mq"`
 		RpcHost string   `yaml:"rpcHost"`
+		Monitor string   `yaml:"monitor"`
 		LogDir  string   `yaml:"logDir"`
 	} `yaml:"base"`
 

@@ -90,6 +90,13 @@ func main() {
 		}
 		srv.Run(addr)
 
+	case "monitor":
+		srv, err := service.NewMonitorService()
+		if err != nil {
+			log.Fatal(err)
+		}
+		srv.Run()
+
 	case "all":
 		bus, err := service.NewBusinessService()
 		if err != nil {

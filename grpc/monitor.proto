@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option go_package = "grpc/monitor";
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.monitor";
+option java_outer_classname = "Monitor";
+
+package monitor;
+
+// The Monitor service definition.
+service Monitor {
+    rpc Health (HealthData) returns (Response) {}
+    rpc Notice (BrokerData) returns (Response) {}
+}
+
+// The request message
+message BrokerData {
+    int32 id = 1;
+    int32 number = 2;
+}
+
+// The request message
+message HealthData {
+    int32 id = 1;
+    string role = 2;
+    string ip = 3;
+    int32 cpu = 4;
+    int32 ram = 5;
+    int32 disk = 6;
+}
+
+// The response message
+message Response {
+    int32 code = 1;
+    string message = 2;
+}
