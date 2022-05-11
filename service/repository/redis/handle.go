@@ -44,7 +44,7 @@ func getHandle() (*handle, error) {
 		return _handle, nil
 	}
 
-	c := app.Yaml.Db.Redis
+	c := app.Yaml.Business.Db.Redis
 	name := "1"
 	dsn := fmt.Sprintf("redis://%s:%d/%s", c.Host, c.Port, name)
 

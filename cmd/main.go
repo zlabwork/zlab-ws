@@ -32,8 +32,8 @@ func init() {
 	}
 
 	// logs
-	_ = os.MkdirAll(app.Yaml.Base.LogDir, 0666)
-	f, err := os.OpenFile(app.Yaml.Base.LogDir+string(os.PathSeparator)+"logs.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	_ = os.MkdirAll(app.Yaml.Log, 0666)
+	f, err := os.OpenFile(app.Yaml.Log+string(os.PathSeparator)+"logs.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.SetOutput(os.Stdout)
 	} else {
@@ -126,7 +126,7 @@ func main() {
 	// Optionally, you could run srv.Shutdown in a goroutine and block on
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
-	fmt.Println("logs at " + app.Yaml.Base.LogDir)
+	fmt.Println("logs at " + app.Yaml.Log)
 	log.Println("shutting down")
 	os.Exit(0)
 }

@@ -8,7 +8,7 @@ import (
 
 func consumer(ch chan *[]byte, config *sarama.Config) {
 
-	consumer, err := sarama.NewConsumer(app.Yaml.Base.MQ, config)
+	consumer, err := sarama.NewConsumer(app.Yaml.MQ, config)
 	if err != nil {
 		panic(err)
 	}

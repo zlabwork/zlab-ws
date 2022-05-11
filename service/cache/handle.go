@@ -44,7 +44,7 @@ func getHandle() (*handle, error) {
 		return _handle, nil
 	}
 
-	c := app.Yaml.Cache
+	c := app.Yaml.Business.Cache
 	name := "0"
 	dsn := fmt.Sprintf("redis://%s:%d/%s", c.Host, c.Port, name)
 

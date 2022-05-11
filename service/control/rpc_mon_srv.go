@@ -29,7 +29,8 @@ func (s *server) Notice(ctx context.Context, in *pb.BrokerData) (*pb.Response, e
 
 func RunMonitorServer() {
 
-	lis, err := net.Listen("tcp", app.Yaml.Base.Monitor)
+	host := app.Yaml.Base.Monitor + ":" + app.Yaml.Base.PortRpc
+	lis, err := net.Listen("tcp", host)
 	if err != nil {
 		log.Fatalf("monitor: failed to listen %v", err)
 	}

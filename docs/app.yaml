@@ -4,27 +4,35 @@
 access:
   - [ "ACCESS-KEY-ID","ACCESS-KEY-SECRET" ]
 
+# base config
 base:
-  mq:
-    - 127.0.0.1:9092
-  rpcHost: 127.0.0.1:50051
-  monitor: 127.0.0.1:50059
-  logDir: /var/zlabms
-
-# config for cache
-cache:
   host: 127.0.0.1
-  port: 6379
+  monitor: 127.0.0.1
+  portRpc: 50051
 
-# config for database
-db:
-  redis:
+# kafka - message queue
+mq:
+  - 127.0.0.1:9092
+
+# logs dir
+log: /var/zlabms
+
+# business
+business:
+  # config for cache
+  cache:
     host: 127.0.0.1
     port: 6379
 
-  mysql:
-    host: 127.0.0.1
-    port: 3306
-    user:
-    pass:
-    name:
+  # config for database
+  db:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+
+    mysql:
+      host: 127.0.0.1
+      port: 3306
+      user:
+      pass:
+      name:

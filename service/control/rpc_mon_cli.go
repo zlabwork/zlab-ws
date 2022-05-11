@@ -13,7 +13,8 @@ import (
 
 func MonitorClient() {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(app.Yaml.Base.Monitor, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	host := app.Yaml.Base.Monitor + ":" + app.Yaml.Base.PortRpc
+	conn, err := grpc.Dial(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

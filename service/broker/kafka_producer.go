@@ -7,7 +7,7 @@ import (
 
 func getProducer(config *sarama.Config) sarama.AsyncProducer {
 
-	producer, err := sarama.NewAsyncProducer(app.Yaml.Base.MQ, config)
+	producer, err := sarama.NewAsyncProducer(app.Yaml.MQ, config)
 	if err != nil {
 		panic(err)
 	}

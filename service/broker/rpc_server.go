@@ -23,8 +23,8 @@ func (s *server) SendMessage(ctx context.Context, in *pb.MsgRequest) (*pb.MsgRep
 
 func StartRPC() {
 
-	// FIXME:: host and port
-	lis, err := net.Listen("tcp", app.Yaml.Base.RpcHost)
+	host := app.Yaml.Base.Host + ":" + app.Yaml.Base.PortRpc
+	lis, err := net.Listen("tcp", host)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

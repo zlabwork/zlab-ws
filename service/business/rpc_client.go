@@ -13,7 +13,9 @@ import (
 
 func StartRPC() {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(app.Yaml.Base.RpcHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// TODO:: connect rpc host
+	host := app.Yaml.Base.Host + ":" + app.Yaml.Base.PortRpc
+	conn, err := grpc.Dial(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

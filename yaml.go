@@ -5,32 +5,33 @@ var Yaml = &yaml{}
 type yaml struct {
 	Access [][]string
 
-	// basic
 	Base struct {
-		MQ      []string `yaml:"mq"`
-		RpcHost string   `yaml:"rpcHost"`
-		Monitor string   `yaml:"monitor"`
-		LogDir  string   `yaml:"logDir"`
+		Host    string `yaml:"host"`
+		Monitor string `yaml:"monitor"`
+		PortRpc string `yaml:"portRpc"`
 	} `yaml:"base"`
 
-	// cache
-	Cache struct {
-		Host string
-		Port int64
-	}
+	MQ []string `yaml:"mq"`
 
-	// database
-	Db struct {
-		Redis struct {
+	Log string `yaml:"log"`
+
+	Business struct {
+		Cache struct {
 			Host string
 			Port int64
 		}
-		Mysql struct {
-			Host string
-			Port int64
-			User string
-			Pass string
-			Name string
+		Db struct {
+			Redis struct {
+				Host string
+				Port int64
+			}
+			Mysql struct {
+				Host string
+				Port int64
+				User string
+				Pass string
+				Name string
+			}
 		}
-	}
+	} `yaml:"business"`
 }
