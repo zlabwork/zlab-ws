@@ -97,7 +97,12 @@ func main() {
 		}
 		srv.Run()
 
-	case "all":
+	case "dev":
+		mon, err := service.NewMonitorService()
+		if err != nil {
+			log.Fatal(err)
+		}
+		mon.Run()
 		bus, err := service.NewBusinessService()
 		if err != nil {
 			log.Fatal(err)

@@ -26,12 +26,12 @@ func StartRPC() {
 	host := app.Yaml.Base.Host + ":" + app.Yaml.Base.PortRpc
 	lis, err := net.Listen("tcp", host)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("broker: failed to listen %v", err)
 	}
 	s := grpc.NewServer()
 	pb.RegisterForwardingServer(s, &server{})
-	log.Printf("rpc listening at %v", lis.Addr())
+	log.Printf("broker listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatalf("broker: failed to serve %v", err)
 	}
 }

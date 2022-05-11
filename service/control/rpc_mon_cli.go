@@ -4,6 +4,7 @@ import (
 	"app"
 	"context"
 	"log"
+	"strconv"
 	"time"
 
 	pb "app/grpc/monitor"
@@ -13,7 +14,8 @@ import (
 
 func MonitorClient() {
 	// Set up a connection to the server.
-	host := app.Yaml.Base.Monitor + ":" + app.Yaml.Base.PortRpc
+	p, _ := strconv.ParseInt(app.Yaml.Base.PortRpc, 10, 64)
+	host := app.Yaml.Base.Monitor + ":" + strconv.FormatInt(p+1, 10)
 	conn, err := grpc.Dial(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)

@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"strconv"
 
 	pb "app/grpc/monitor"
 	"google.golang.org/grpc"
@@ -29,7 +30,8 @@ func (s *server) Notice(ctx context.Context, in *pb.BrokerData) (*pb.Response, e
 
 func RunMonitorServer() {
 
-	host := app.Yaml.Base.Monitor + ":" + app.Yaml.Base.PortRpc
+	p, _ := strconv.ParseInt(app.Yaml.Base.PortRpc, 10, 64)
+	host := app.Yaml.Base.Monitor + ":" + strconv.FormatInt(p+1, 10)
 	lis, err := net.Listen("tcp", host)
 	if err != nil {
 		log.Fatalf("monitor: failed to listen %v", err)
