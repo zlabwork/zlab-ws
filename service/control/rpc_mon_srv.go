@@ -18,13 +18,13 @@ type server struct {
 
 // Health implements monitor.MonitorServer
 func (s *server) Health(ctx context.Context, in *pb.HealthData) (*pb.Response, error) {
-	log.Printf("Received: %v", in.GetId())
+	log.Printf("Moniter: Received %v, %v, %v", in.GetId(), in.GetIp(), in.GetRole())
 	return &pb.Response{Code: 200, Message: "success"}, nil
 }
 
 // Notice implements monitor.MonitorServer
 func (s *server) Notice(ctx context.Context, in *pb.BrokerData) (*pb.Response, error) {
-	log.Printf("Received: %v", in.GetNumber())
+	log.Printf("Moniter: Received %v, %v", in.GetId(), in.GetNumber())
 	return &pb.Response{Code: 200, Message: "success"}, nil
 }
 

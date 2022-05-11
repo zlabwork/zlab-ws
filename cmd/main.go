@@ -62,7 +62,7 @@ func main() {
 	var addr = flag.String("addr", ":8080", "http service address")
 	flag.Usage = usage
 	flag.BoolVar(&help, "h", false, "help")
-	flag.StringVar(&module, "m", "", "module name - e.g. -m broker, -m business or -m all")
+	flag.StringVar(&module, "m", "", "module name - e.g. -m broker, -m business or -m dev")
 	flag.DurationVar(&wait, "timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 	if help {

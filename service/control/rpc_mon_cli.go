@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func MonitorClient() {
+func monitorClientDemo() {
 	// Set up a connection to the server.
 	p, _ := strconv.ParseInt(app.Yaml.Base.PortRpc, 10, 64)
 	host := app.Yaml.Base.Monitor + ":" + strconv.FormatInt(p+1, 10)
@@ -33,4 +33,17 @@ func MonitorClient() {
 		log.Fatalf("could not greet: %v", err)
 	}
 	log.Printf("Result: %d, %s", r.GetCode(), r.GetMessage())
+}
+
+func MonitorConn() (*grpc.ClientConn, error) {
+
+	// Set up a connection to the server.
+	p, _ := strconv.ParseInt(app.Yaml.Base.PortRpc, 10, 64)
+	host := app.Yaml.Base.Monitor + ":" + strconv.FormatInt(p+1, 10)
+	conn, err := grpc.Dial(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+		return nil, err
+	}
+	return conn, nil
 }

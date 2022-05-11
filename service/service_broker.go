@@ -2,13 +2,16 @@ package service
 
 import (
 	"app"
+	pb "app/grpc/monitor"
 	"app/restful"
 	"app/service/broker"
 	"app/service/cache"
-	"encoding/json"
+	"app/service/control"
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -32,7 +35,7 @@ func NewBrokerService() (*Broker, error) {
 	}, nil
 }
 
-func (br *Broker) information() {
+func (br *Broker) monitor() {
 
 	type info struct {
 		Node    string `json:"node"`
@@ -40,16 +43,40 @@ func (br *Broker) information() {
 		Clients int    `json:"clients"`
 	}
 
-	ticker := time.NewTicker(20 * time.Second)
+	ticker := time.NewTicker(8 * time.Second)
 	defer ticker.Stop()
 	for {
 		<-ticker.C
 
-		bs, err := json.Marshal(&info{Node: os.Getenv("APP_NODE"), Time: time.Now().UTC().Unix(), Clients: br.hub.GetClientsNumber()})
-		if err != nil {
-			return
-		}
-		log.Println("INFO:", string(bs))
+		go func() {
+
+			// TODO: get config from Yaml
+			node, _ := strconv.ParseInt(os.Getenv("APP_NODE"), 10, 32)
+			num := int32(br.hub.GetClientsNumber())
+
+			// conn
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			conn, err := control.MonitorConn()
+			if err != nil {
+				return
+			}
+			defer conn.Close()
+			defer cancel()
+
+			// TODO: transfer data
+			cli := pb.NewMonitorClient(conn)
+			_, err = cli.Notice(ctx, &pb.BrokerData{Id: int32(node), Number: num})
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			_, err = cli.Health(ctx, &pb.HealthData{Id: 1, Ip: app.Yaml.Base.Host, Role: "Broker"})
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}()
+
 	}
 }
 
@@ -66,7 +93,7 @@ func (br *Broker) Run(addr *string) {
 
 	// Run our server in a goroutine so that it doesn't block.
 	go br.hub.Run()
-	go br.information()
+	go br.monitor()
 
 	// websocket
 	go func() {
