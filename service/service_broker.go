@@ -10,8 +10,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
-	"strconv"
 	"time"
 )
 
@@ -51,7 +49,7 @@ func (br *Broker) monitor() {
 		go func() {
 
 			// TODO: get config from Yaml
-			node, _ := strconv.ParseInt(os.Getenv("APP_NODE"), 10, 32)
+			node := app.Yaml.Base.Node
 			num := int32(br.hub.GetClientsNumber())
 
 			// conn
@@ -65,7 +63,7 @@ func (br *Broker) monitor() {
 
 			// TODO: transfer data
 			cli := pb.NewMonitorClient(conn)
-			_, err = cli.Notice(ctx, &pb.BrokerData{Id: int32(node), Number: num})
+			_, err = cli.Notice(ctx, &pb.BrokerData{Id: node, Number: num})
 			if err != nil {
 				log.Println(err)
 				return
@@ -96,6 +94,7 @@ func (br *Broker) Run(addr *string) {
 	go br.monitor()
 
 	// websocket
+	log.Println("broker service at " + *addr)
 	go func() {
 		if err := http.ListenAndServe(*addr, nil); err != nil {
 			log.Fatal("ListenAndServe: ", err)

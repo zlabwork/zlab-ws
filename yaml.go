@@ -6,6 +6,7 @@ type yaml struct {
 	Access [][]string
 
 	Base struct {
+		Node    int32  `yaml:"node"`
 		Host    string `yaml:"host"`
 		Monitor string `yaml:"monitor"`
 		PortRpc string `yaml:"portRpc"`
@@ -14,6 +15,10 @@ type yaml struct {
 	MQ []string `yaml:"mq"`
 
 	Log string `yaml:"log"`
+
+	Broker struct {
+		Port string
+	}
 
 	Business struct {
 		Cache struct {

@@ -19,7 +19,7 @@ func init() {
 	// env
 	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// app.yaml
@@ -43,7 +43,7 @@ func init() {
 	log.SetFormatter(&log.TextFormatter{})
 
 	// libs
-	app.Libs = app.NewLibs()
+	app.Libs = app.NewLibs(app.Yaml.Base.Node)
 }
 
 func usage() {
@@ -59,7 +59,7 @@ func main() {
 	var help bool
 	var wait time.Duration
 	var module string
-	var addr = flag.String("addr", ":8080", "http service address")
+	var addr = flag.String("addr", ":"+app.Yaml.Broker.Port, "http service address")
 	flag.Usage = usage
 	flag.BoolVar(&help, "h", false, "help")
 	flag.StringVar(&module, "m", "", "module name - e.g. -m broker, -m business or -m dev")
@@ -70,9 +70,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if len(os.Getenv("APP_PORT")) > 0 {
-		*addr = ":" + os.Getenv("APP_PORT")
-	}
+	// banner
+	app.Banner("service is started")
 
 	// service
 	switch module {
@@ -118,7 +117,6 @@ func main() {
 		usage()
 		os.Exit(1)
 	}
-	app.Banner("service is started")
 
 	c := make(chan os.Signal, 1)
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)

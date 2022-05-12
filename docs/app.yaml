@@ -6,6 +6,7 @@ access:
 
 # base config
 base:
+  node: 1
   host: 127.0.0.1
   monitor: 127.0.0.1
   portRpc: 50051
@@ -16,6 +17,10 @@ mq:
 
 # logs dir
 log: /var/zlabms
+
+# broker
+broker:
+  port: 3000
 
 # business
 business:
