@@ -8,7 +8,8 @@ import (
 	"app/service/cache"
 	"app/service/control"
 	"context"
-	"log"
+	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )
@@ -94,8 +95,9 @@ func (br *Broker) Run(addr *string) {
 	go br.monitor()
 
 	// websocket
-	log.Println("broker service at " + *addr)
 	go func() {
+		fmt.Println("broker service at " + *addr)
+		log.Println("broker service at " + *addr)
 		if err := http.ListenAndServe(*addr, nil); err != nil {
 			log.Fatal("ListenAndServe: ", err)
 		}

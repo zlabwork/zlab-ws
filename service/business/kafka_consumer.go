@@ -3,7 +3,7 @@ package business
 import (
 	"app"
 	"github.com/Shopify/sarama"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 func consumer(ch chan *[]byte, config *sarama.Config) {

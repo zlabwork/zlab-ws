@@ -3,7 +3,8 @@ package broker
 import (
 	"app"
 	"context"
-	"log"
+	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net"
 
 	pb "app/grpc/forward"
@@ -30,6 +31,7 @@ func StartRPC() {
 	}
 	s := grpc.NewServer()
 	pb.RegisterForwardingServer(s, &server{})
+	fmt.Printf("broker listening at %v\n", lis.Addr())
 	log.Printf("broker listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("broker: failed to serve %v", err)

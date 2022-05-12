@@ -6,7 +6,7 @@ package broker
 
 import (
 	"github.com/Shopify/sarama"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the

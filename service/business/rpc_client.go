@@ -3,7 +3,7 @@ package business
 import (
 	"app"
 	"context"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"time"
 
 	pb "app/grpc/forward"

@@ -3,7 +3,7 @@ package control
 import (
 	"app"
 	"context"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 

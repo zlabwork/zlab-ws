@@ -3,7 +3,8 @@ package control
 import (
 	"app"
 	"context"
-	"log"
+	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net"
 	"strconv"
 
@@ -38,6 +39,7 @@ func RunMonitorServer() {
 	}
 	s := grpc.NewServer()
 	pb.RegisterMonitorServer(s, &server{})
+	fmt.Printf("monitor listening at %v\n", lis.Addr())
 	log.Printf("monitor listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("monitor: failed to serve %v", err)
