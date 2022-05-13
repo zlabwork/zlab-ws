@@ -6,7 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func consumer(ch chan *[]byte, config *sarama.Config) {
+func consumer(ch chan []byte, config *sarama.Config) {
 
 	consumer, err := sarama.NewConsumer(app.Yaml.MQ, config)
 	if err != nil {
@@ -35,7 +35,7 @@ func consumer(ch chan *[]byte, config *sarama.Config) {
 		select {
 		case msg := <-partitionConsumer.Messages():
 			// log.Printf("Consumed message offset %d\n", msg.Offset)
-			ch <- &msg.Value
+			ch <- msg.Value
 			consumed++
 
 		}

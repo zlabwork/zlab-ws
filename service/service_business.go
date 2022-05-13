@@ -5,13 +5,14 @@ import (
 	"app/service/business"
 	"app/service/cache"
 	"app/service/repository/mysql"
+	"encoding/binary"
 	"fmt"
 )
 
 type Business struct {
 	message app.RepoMessage
 	session app.CacheSession
-	data    chan *[]byte
+	data    chan []byte
 }
 
 func NewBusinessService() (*Business, error) {
@@ -34,7 +35,7 @@ func NewBusinessService() (*Business, error) {
 	return &Business{
 		message: msg,
 		session: cache,
-		data:    make(chan *[]byte),
+		data:    make(chan []byte),
 	}, nil
 }
 
@@ -48,7 +49,12 @@ func (bu *Business) Run() {
 		for {
 			select {
 			case m := <-bu.data:
-				fmt.Println("processing:", m)
+
+				sid := int64(binary.BigEndian.Uint64(m[4:12]))
+				seq := int64(binary.BigEndian.Uint64(m[12:20]))
+				send := int64(binary.BigEndian.Uint64(m[20:28]))
+				msg := m[28:]
+				fmt.Println("processing:", sid, seq, send, string(msg))
 			}
 		}
 	}()
