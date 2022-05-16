@@ -2,15 +2,19 @@ package main
 
 import (
 	"app"
+	"app/restful"
 	"app/service"
 	"flag"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 )
 
@@ -53,6 +57,30 @@ func usage() {
 	fmt.Fprint(os.Stderr, "\n")
 }
 
+func login() {
+
+	r := mux.NewRouter().StrictSlash(true)
+	r.HandleFunc("/", restful.DefaultHandler)
+	r.HandleFunc("/auth/{token:[0-9a-zA-Z_-]+}", restful.AuthHandler).Methods(http.MethodGet)
+
+	addr := "0.0.0.0:" + strconv.FormatInt(app.Yaml.Login.Port, 10)
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         addr,
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+	}
+
+	fmt.Println("login service at " + addr)
+	log.Println("login service at " + addr)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
+	}()
+}
+
 func main() {
 
 	// params
@@ -75,6 +103,9 @@ func main() {
 
 	// service
 	switch module {
+	case "login":
+		login()
+
 	case "business":
 		srv, err := service.NewBusinessService()
 		if err != nil {
@@ -97,16 +128,20 @@ func main() {
 		srv.Run()
 
 	case "dev":
+		login()
+
 		mon, err := service.NewMonitorService()
 		if err != nil {
 			log.Fatal(err)
 		}
 		mon.Run()
+
 		bus, err := service.NewBusinessService()
 		if err != nil {
 			log.Fatal(err)
 		}
 		bus.Run()
+
 		bro, err := service.NewBrokerService()
 		if err != nil {
 			log.Fatal(err)

@@ -3,7 +3,6 @@ package service
 import (
 	"app"
 	pb "app/grpc/monitor"
-	"app/restful"
 	"app/service/broker"
 	"app/service/cache"
 	"app/service/control"
@@ -85,7 +84,8 @@ func (br *Broker) serveWs(w http.ResponseWriter, r *http.Request) {
 
 func (br *Broker) Run(addr *string) {
 
-	http.HandleFunc("/", restful.DefaultHandler)
+	// http.HandleFunc("/", restful.DefaultHandler)
+	// TODO: move to cmd
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		br.serveWs(w, r)
 	})
