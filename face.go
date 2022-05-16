@@ -6,8 +6,8 @@ import (
 )
 
 type CacheToken interface {
-	GetToken(id string) (string, error)
-	SetToken(id string, token string) error
+	GetToken(ctx context.Context, id string) (string, error)
+	SetToken(ctx context.Context, id string, token string) error
 }
 
 type CacheSession interface {

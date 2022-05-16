@@ -1,7 +1,13 @@
 package cache
 
 import (
+	"context"
 	"github.com/go-redis/redis/v8"
+	"time"
+)
+
+const (
+	prefixTK = "TK:" // for token
 )
 
 type TokenRepository struct {
@@ -20,12 +26,18 @@ func NewTokenRepository() (*TokenRepository, error) {
 	}, nil
 }
 
-func (tr *TokenRepository) GetToken(id string) (string, error) {
+func (tk *TokenRepository) GetToken(ctx context.Context, id string) (string, error) {
 
-	return "", nil
+	cmd := tk.Conn.Get(ctx, prefixTK+id)
+	if cmd.Err() != nil {
+		return "", cmd.Err()
+	}
+
+	return cmd.String(), nil
 }
 
-func (tr *TokenRepository) SetToken(id string, token string) error {
+func (tk *TokenRepository) SetToken(ctx context.Context, id string, token string) error {
 
-	return nil
+	cmd := tk.Conn.Set(ctx, prefixTK+id, token, 24*time.Hour)
+	return cmd.Err()
 }
