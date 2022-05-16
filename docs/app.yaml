@@ -21,6 +21,7 @@ log: /var/zlabms
 # broker
 broker:
   port: 3000
+  login: http://127.0.0.1:3001
 
 # business
 business:
@@ -41,3 +42,7 @@ business:
       user:
       pass:
       name:
+
+# login service
+login:
+  port: 3001

@@ -3,10 +3,12 @@ package app
 import "time"
 
 const (
-	TypeNull  uint8 = 0x00
-	TypeBeats uint8 = 0x01
-	TypeAck   uint8 = 0x02
-	TypeAuth  uint8 = 0x03
+	TypeNull    uint8 = 0x00
+	TypeBeats   uint8 = 0x01
+	TypeAck     uint8 = 0x02
+	TypeAuth    uint8 = 0x03
+	TypeOnline  uint8 = 0x04
+	TypeOffline uint8 = 0x05
 )
 
 const (

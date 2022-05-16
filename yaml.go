@@ -17,7 +17,8 @@ type yaml struct {
 	Log string `yaml:"log"`
 
 	Broker struct {
-		Port string
+		Port  string
+		Login string
 	}
 
 	Business struct {
@@ -39,4 +40,8 @@ type yaml struct {
 			}
 		}
 	} `yaml:"business"`
+
+	Login struct {
+		Port int64
+	}
 }
